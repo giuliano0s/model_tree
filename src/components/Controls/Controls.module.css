@@ -1,0 +1,86 @@
+.wrap {
+  position: absolute;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+  z-index: 10;
+}
+
+.group {
+  display: flex;
+  gap: var(--controls-gap);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.btn {
+  color: var(--color-text-primary);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: background var(--transition-fast);
+}
+
+.btn:hover {
+  background: var(--color-bg-hover);
+}
+
+.btnGhost {
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.btnGhost:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-elevated);
+}
+
+.icon {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  transition: background var(--transition-fast);
+}
+
+.icon:hover {
+  background: var(--color-bg-hover);
+}
+
+/* hard reset discreto — quase invisível até o hover */
+.hardReset {
+  align-self: flex-end;
+  padding: 2px var(--space-2);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-xs);
+  opacity: 0.35;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+
+.hardReset:hover {
+  opacity: 1;
+  color: var(--color-text-secondary);
+}

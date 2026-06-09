@@ -1,0 +1,30 @@
+# segredos
+.env
+.env.*
+
+# dependências
+node_modules/
+.venv/
+__pycache__/
+
+# build
+dist/
+dist-ssr/
+
+# backups locais
+.backup/
+data/models_tree.backup.json
+
+# cache intermediário da tradução (por idioma)
+scripts/translations.*.json
+
+# logs
+*.log
+npm-debug.log*
+
+# cache do editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.local
