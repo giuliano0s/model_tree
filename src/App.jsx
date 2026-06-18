@@ -5,6 +5,7 @@ import { buildColorMap } from './utils/colorUtils.js'
 import { findById } from './utils/treeUtils.js'
 import Tree from './components/Tree/index.jsx'
 import NavSidebar from './components/NavSidebar/index.jsx'
+import Recommender from './components/Recommender/index.jsx'
 import styles from './App.module.css'
 
 const LS_KEY = 'modeltree.layout'
@@ -23,6 +24,7 @@ export default function App() {
   const [focusReq,     setFocusReq]     = useState(null)            // pedido de foco em um nó
   const [navOpen,      setNavOpen]      = useState(true)            // bandeja de navegação aberta?
   const [panelClosing, setPanelClosing] = useState(false)          // painel em animação de saída?
+  const [recOpen,      setRecOpen]      = useState(false)          // painel de recomendação aberto?
 
   const { t, lang } = useLang()
 
@@ -271,6 +273,16 @@ export default function App() {
           onPanelExited={handlePanelExited}
         />
       </main>
+
+      {/* botão flutuante + painel de recomendação por LLM */}
+      <button
+        className={styles.recBtn}
+        onClick={() => setRecOpen(true)}
+        title="Que modelo usar?"
+      >
+        ✨ Recomendar modelo
+      </button>
+      {recOpen && <Recommender onClose={() => setRecOpen(false)} />}
     </div>
   )
 }
