@@ -63,6 +63,12 @@ def flatten(node, branch="", depth=0, out=None):
             "branch": branch,
             "depth": depth,
             "leaf": not node.get("children"),
+            "diff_siblings": node.get("diff_siblings", ""),
+            "strengths": node.get("strengths", []),
+            "weaknesses": node.get("weaknesses", []),
+            "recommended_for": node.get("recommended_for", []),
+            "not_recommended_for": node.get("not_recommended_for", []),
+            "curiosity": node.get("curiosity", ""),
         },
     })
     for child in node.get("children", []):

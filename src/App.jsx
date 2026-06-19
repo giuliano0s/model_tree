@@ -5,7 +5,7 @@ import { buildColorMap } from './utils/colorUtils.js'
 import { findById } from './utils/treeUtils.js'
 import Tree from './components/Tree/index.jsx'
 import NavSidebar from './components/NavSidebar/index.jsx'
-import Recommender from './components/Recommender/index.jsx'
+import Chat from './components/Chat/index.jsx'
 import styles from './App.module.css'
 
 const LS_KEY = 'modeltree.layout'
@@ -278,11 +278,11 @@ export default function App() {
       <button
         className={styles.recBtn}
         onClick={() => setRecOpen(true)}
-        title={t('rec.title')}
+        title={t('chat.title')}
       >
-        ✨ {t('rec.open')}
+        ✨ {t('chat.open')}
       </button>
-      {recOpen && <Recommender onClose={() => setRecOpen(false)} />}
+      {recOpen && <Chat onClose={() => setRecOpen(false)} />}
     </div>
   )
 }

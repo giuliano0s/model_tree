@@ -20,6 +20,12 @@ export const recommendLimiter = new Ratelimit({
   prefix: "rl:recommend",
 });
 
+export const chatLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(15, "60 s"),
+  prefix: "rl:chat",
+});
+
 // extrai o IP do cliente a partir dos headers de proxy da Vercel
 export function clientIp(headers: Record<string, string | string[] | undefined>): string {
   const fwd = headers["x-forwarded-for"];

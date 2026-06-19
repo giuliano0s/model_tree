@@ -50,6 +50,12 @@ const STRINGS = {
     'rec.loading': 'Consultando...',
     'rec.error': 'Falha de conexão com o servidor',
 
+    'chat.open': 'Consultor de modelos',
+    'chat.title': 'Consultor de modelos',
+    'chat.placeholder': 'Descreva seu problema, dados e restrições...',
+    'chat.send': 'Enviar',
+    'chat.thinking': 'Pensando...',
+
     'lang.switch': 'Idioma',
   },
   en: {
@@ -91,6 +97,12 @@ const STRINGS = {
     'rec.submit': 'Recommend',
     'rec.loading': 'Consulting...',
     'rec.error': 'Connection to the server failed',
+
+    'chat.open': 'Model advisor',
+    'chat.title': 'Model advisor',
+    'chat.placeholder': 'Describe your problem, data and constraints...',
+    'chat.send': 'Send',
+    'chat.thinking': 'Thinking...',
 
     'lang.switch': 'Language',
   },
