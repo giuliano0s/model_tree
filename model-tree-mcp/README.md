@@ -3,8 +3,8 @@
 Servidor MCP que recomenda modelos preditivos (ML, Deep Learning, Estatística
 Clássica) a partir da descrição de uma situação em linguagem natural.
 
-É um cliente HTTP fino: a tool consulta um endpoint público hospedado, que faz
-a busca vetorial na árvore de 365 modelos. Não guarda segredo nem banco local.
+A tool consulta um endpoint hospedado que faz a busca vetorial na árvore de
+365 modelos curados.
 
 ## Uso (Claude Code / Claude Desktop)
 

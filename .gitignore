@@ -4,6 +4,7 @@ CLAUDE.md
 # segredos
 .env
 .env.*
+!.env.example
 
 # dependências
 node_modules/

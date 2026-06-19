@@ -1,5 +1,4 @@
-// LÓGICA de busca vetorial (camada de dados), reusada pelos endpoints.
-// Usa o token READ-ONLY do Vector: este caminho nunca escreve na base.
+// Busca vetorial compartilhada pelos endpoints. Cliente read-only.
 
 import { Index } from "@upstash/vector";
 

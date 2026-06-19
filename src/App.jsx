@@ -147,7 +147,7 @@ export default function App() {
 
     // em dev o endpoint existe e grava o arquivo do repo; em produção, falha silenciosa
     try {
-      const r = await fetch('/api/save-layout', {
+      const r = await fetch('/__save-layout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: json,
@@ -278,9 +278,9 @@ export default function App() {
       <button
         className={styles.recBtn}
         onClick={() => setRecOpen(true)}
-        title="Que modelo usar?"
+        title={t('rec.title')}
       >
-        ✨ Recomendar modelo
+        ✨ {t('rec.open')}
       </button>
       {recOpen && <Recommender onClose={() => setRecOpen(false)} />}
     </div>

@@ -6,12 +6,12 @@ import { fileURLToPath } from 'node:url'
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url))
 
-// Grava data/layout.json direto no disco via POST /api/save-layout (só em dev)
+// Grava data/layout.json direto no disco via POST /__save-layout (só em dev)
 function layoutSaver() {
   return {
     name: 'layout-saver',
     configureServer(server) {
-      server.middlewares.use('/api/save-layout', (req, res, next) => {
+      server.middlewares.use('/__save-layout', (req, res, next) => {
         if (req.method !== 'POST') return next()
         let body = ''
         req.on('data', chunk => { body += chunk })

@@ -1,5 +1,4 @@
-// ENDPOINT /api/recommend usado pelo site: busca + LLM pedagógica.
-// Fluxo: rate-limit (apertado) -> busca vetorial -> Gemini explica -> JSON.
+// Recomendação pedagógica: busca vetorial + ranqueamento e explicação por LLM.
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { GoogleGenAI } from "@google/genai";
@@ -9,23 +8,24 @@ import { recommendLimiter, clientIp } from "../lib/ratelimit.js";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 
-// monta o prompt pedagógico a partir da situação e dos candidatos da busca
+// monta o prompt pedagógico com a situação e os candidatos
 function montarPrompt(situacao: string, candidatos: Modelo[]): string {
   const lista = candidatos
-    .map((c, i) => `${i + 1}. ${c.name} (${c.year}) [ramo: ${c.branch}]`)
+    .map((c, i) => `${i + 1}. ${c.name} (${c.year}) [branch: ${c.branch}]`)
     .join("\n");
-  return `Você é um tutor de modelagem preditiva. Um usuário descreveu esta situação:
+  return `You are a tutor in predictive modeling. A user described this situation:
 
 "${situacao}"
 
-A busca retornou estes modelos candidatos da nossa árvore curada:
+The search returned these candidate models from a curated taxonomy:
 ${lista}
 
-Escolha o(s) mais adequado(s) e explique de forma didática, em português do Brasil:
-- por que ele se encaixa na situação;
-- quando preferir um candidato em vez de outro;
-- uma ressalva ou cuidado prático.
-Use apenas os candidatos acima e seja direto.`;
+Pick the most suitable one(s) and explain didactically:
+- why it fits the situation;
+- when to prefer one candidate over another;
+- one practical caveat.
+Use only the candidates above and be direct. Reply in the same language the user wrote in.
+Use the conventional form of technical terms, and never translate proper names of algorithms, libraries, models or methods (e.g. XGBoost, Random Forest, ARIMA, Transformer).`;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -36,19 +36,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // gatekeeper apertado: protege o Vector E a cota do Gemini
   const { success, limit, remaining } = await recommendLimiter.limit(clientIp(req.headers));
   if (!success) {
-    return res.status(429).json({ erro: "limite de requisições atingido", limit, remaining });
+    return res.status(429).json({ erro: "rate limit exceeded", limit, remaining });
   }
 
   // validação de entrada
   const { situacao, topK } = (req.body ?? {}) as { situacao?: string; topK?: number };
   if (!situacao || typeof situacao !== "string") {
-    return res.status(400).json({ erro: "campo 'situacao' (string) é obrigatório" });
+    return res.status(400).json({ erro: "field 'situacao' (string) is required" });
   }
 
-  // 1. busca: mesmos candidatos que o /api/search retornaria
   const candidatos = await searchModels(situacao, Math.min(topK ?? 5, 20));
 
-  // 2. passo extra: Gemini ranqueia e explica de forma pedagógica
+  // Gemini ranqueia e explica os candidatos
   const resposta = await ai.models.generateContent({
     model: MODEL,
     contents: montarPrompt(situacao, candidatos),

@@ -43,6 +43,13 @@ const STRINGS = {
     'panel.curiosity': 'Curiosidade',
     'panel.close': 'Fechar',
 
+    'rec.open': 'Recomendar modelo',
+    'rec.title': 'Que modelo usar?',
+    'rec.placeholder': 'Descreva sua situação: dados, problema, restrições...',
+    'rec.submit': 'Recomendar',
+    'rec.loading': 'Consultando...',
+    'rec.error': 'Falha de conexão com o servidor',
+
     'lang.switch': 'Idioma',
   },
   en: {
@@ -77,6 +84,13 @@ const STRINGS = {
     'panel.notRecommended': 'Not recommended for',
     'panel.curiosity': 'Curiosity',
     'panel.close': 'Close',
+
+    'rec.open': 'Recommend a model',
+    'rec.title': 'Which model to use?',
+    'rec.placeholder': 'Describe your situation: data, problem, constraints...',
+    'rec.submit': 'Recommend',
+    'rec.loading': 'Consulting...',
+    'rec.error': 'Connection to the server failed',
 
     'lang.switch': 'Language',
   },

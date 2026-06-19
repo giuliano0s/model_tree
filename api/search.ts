@@ -1,5 +1,4 @@
-// ENDPOINT /api/search usado pelo MCP: só busca, sem LLM.
-// Fluxo: rate-limit por IP -> busca vetorial -> top-k em JSON.
+// Busca vetorial pública: rate-limit por IP e top-k de modelos.
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { searchModels } from "../lib/vectorSearch.js";
@@ -10,16 +9,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ erro: "use POST" });
   }
 
-  // gatekeeper: barra antes de tocar o Vector
+  // gatekeeper: rate-limit por IP
   const { success, limit, remaining } = await searchLimiter.limit(clientIp(req.headers));
   if (!success) {
-    return res.status(429).json({ erro: "limite de requisições atingido", limit, remaining });
+    return res.status(429).json({ erro: "rate limit exceeded", limit, remaining });
   }
 
   // validação de entrada
   const { situacao, topK } = (req.body ?? {}) as { situacao?: string; topK?: number };
   if (!situacao || typeof situacao !== "string") {
-    return res.status(400).json({ erro: "campo 'situacao' (string) é obrigatório" });
+    return res.status(400).json({ erro: "field 'situacao' (string) is required" });
   }
 
   const modelos = await searchModels(situacao, Math.min(topK ?? 5, 20));

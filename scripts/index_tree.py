@@ -2,16 +2,17 @@
 Indexa a árvore de modelos no Upstash Vector (índice híbrido).
 
 Cada nó vira 1 chunk: o texto descritivo é vetorizado pelo modelo embutido do
-Upstash (denso text-embedding-3-small + esparso BM25 — passa-se texto cru). Os
+Upstash (denso text-embedding-3-small + esparso BM25; passa-se texto cru). Os
 campos id/name/year/branch/depth/leaf viram metadados filtráveis.
 
-Carga única e idempotente: o upsert sobrescreve por id, então pode rodar de novo.
+Reseta o índice e reingere a base do idioma escolhido (default: en).
 
 Uso:
     pip install -r scripts/requirements.txt
-    python scripts/index_tree.py
+    python scripts/index_tree.py [lang]
 """
 
+import sys
 import json
 from pathlib import Path
 from upstash_vector import Index, Vector
@@ -25,7 +26,8 @@ except ImportError:
 
 # ---------------------------------------------------------------- config
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "data" / "models_tree.pt.json"
+LANG = sys.argv[1] if len(sys.argv) > 1 else "en"
+SRC = ROOT / "data" / f"models_tree.{LANG}.json"
 BATCH_SIZE = 100
 
 # ---------------------------------------------------------------- chunk
@@ -33,17 +35,17 @@ BATCH_SIZE = 100
 def build_text(node):
     parts = [f"{node['name']} ({node.get('year', '')})".strip()]
     if node.get("diff_siblings"):
-        parts.append(f"Diferença: {node['diff_siblings']}")
+        parts.append(f"Difference: {node['diff_siblings']}")
     if node.get("strengths"):
-        parts.append("Pontos fortes: " + "; ".join(node["strengths"]))
+        parts.append("Strengths: " + "; ".join(node["strengths"]))
     if node.get("weaknesses"):
-        parts.append("Pontos fracos: " + "; ".join(node["weaknesses"]))
+        parts.append("Weaknesses: " + "; ".join(node["weaknesses"]))
     if node.get("recommended_for"):
-        parts.append("Recomendado para: " + "; ".join(node["recommended_for"]))
+        parts.append("Recommended for: " + "; ".join(node["recommended_for"]))
     if node.get("not_recommended_for"):
-        parts.append("Não recomendado para: " + "; ".join(node["not_recommended_for"]))
+        parts.append("Not recommended for: " + "; ".join(node["not_recommended_for"]))
     if node.get("curiosity"):
-        parts.append("Curiosidade: " + node["curiosity"])
+        parts.append("Curiosity: " + node["curiosity"])
     return "\n".join(parts)
 
 # ---------------------------------------------------------------- travessia
@@ -73,6 +75,9 @@ def main():
     tree = json.loads(SRC.read_text(encoding="utf-8"))
     records = flatten(tree)
     index = Index.from_env()
+
+    # limpa o índice antes de reingerir
+    index.reset()
 
     # envia em lotes; cada Vector usa texto cru (embedding feito pelo Upstash)
     for i in range(0, len(records), BATCH_SIZE):

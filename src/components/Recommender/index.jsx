@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
+import { useLang } from '../../i18n.jsx'
 import styles from './Recommender.module.css'
 
 // painel flutuante: descreve a situação -> chama /api/recommend -> mostra resposta
 export default function Recommender({ onClose }) {
+  const { t } = useLang()
   const [situacao,  setSituacao]  = useState('')
   const [loading,   setLoading]   = useState(false)
   const [erro,      setErro]      = useState(null)
@@ -21,10 +23,10 @@ export default function Recommender({ onClose }) {
         body: JSON.stringify({ situacao: texto, topK: 5 }),
       })
       const data = await r.json()
-      if (!r.ok) { setErro(data.erro || 'erro na requisição'); return }
+      if (!r.ok) { setErro(data.erro || t('rec.error')); return }
       setResultado(data)
     } catch {
-      setErro('falha de conexão com o servidor')
+      setErro(t('rec.error'))
     } finally {
       setLoading(false)
     }
@@ -34,13 +36,13 @@ export default function Recommender({ onClose }) {
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
-          <h2 className={styles.title}>Que modelo usar?</h2>
-          <button className={styles.close} onClick={onClose} aria-label="Fechar">×</button>
+          <h2 className={styles.title}>{t('rec.title')}</h2>
+          <button className={styles.close} onClick={onClose} aria-label={t('panel.close')}>×</button>
         </header>
 
         <textarea
           className={styles.input}
-          placeholder="Descreva sua situação: dados, problema, restrições..."
+          placeholder={t('rec.placeholder')}
           value={situacao}
           onChange={(e) => setSituacao(e.target.value)}
           rows={4}
@@ -50,7 +52,7 @@ export default function Recommender({ onClose }) {
           onClick={enviar}
           disabled={loading || !situacao.trim()}
         >
-          {loading ? 'Consultando...' : 'Recomendar'}
+          {loading ? t('rec.loading') : t('rec.submit')}
         </button>
 
         {erro && <p className={styles.erro}>{erro}</p>}
