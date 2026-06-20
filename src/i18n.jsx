@@ -55,6 +55,13 @@ const STRINGS = {
     'chat.level.title': 'Ajuste a profundidade da resposta ao seu nível',
     'chat.reset': 'Nova conversa',
 
+    'about.title': 'Sobre o projeto',
+    'about.body': 'Este projeto nasceu para transformar o mapa disperso dos modelos preditivos em uma única árvore navegável. Em vez de caçar definições por artigos e blogs, você explora a taxonomia inteira, vê o que distingue cada modelo dos irmãos, quando usar e quando evitar, e conta com um tutor que recomenda o caminho certo para o seu problema. A ideia é servir tanto de material de estudo para quem aprende quanto de ferramenta de consulta para quem constrói.',
+    'about.noteBefore': 'Nota: alguns ',
+    'about.noteLink': 'modelos',
+    'about.noteAfter': ' preditivos não estão indexados nesta árvore.',
+    'about.open': 'Sobre o projeto',
+
     'lang.switch': 'Idioma',
   },
   en: {
@@ -101,6 +108,13 @@ const STRINGS = {
     'chat.level.advanced': 'Advanced',
     'chat.level.title': 'Tune the answer depth to your level',
     'chat.reset': 'New chat',
+
+    'about.title': 'About the project',
+    'about.body': 'This project was born to turn the scattered map of predictive models into a single navigable tree. Instead of hunting for definitions across papers and blogs, you explore the whole taxonomy, see what sets each model apart from its siblings, when to use it and when to avoid it, and get a tutor that points you to the right approach for your problem. It aims to be both study material for those learning and a reference tool for those building.',
+    'about.noteBefore': 'Note: some predictive ',
+    'about.noteLink': 'models',
+    'about.noteAfter': ' are not indexed in this tree.',
+    'about.open': 'About the project',
 
     'lang.switch': 'Language',
   },

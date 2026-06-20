@@ -15,6 +15,7 @@ function Node({
   searchActive,
   isMatch,
   isAncestor,
+  isDimmed,
   onNodeClick,
   onDrag,
 }) {
@@ -29,6 +30,7 @@ function Node({
 
   let opacity = 1
   if (searchActive && !isMatch && !isAncestor) opacity = 0.15
+  else if (isDimmed) opacity = 0.55  // nó-surpresa: apagado, como quem estava escondido
 
   const ringColor = isSelected ? border : 'transparent'
   const ringWidth = isSelected ? 2.5 : 0

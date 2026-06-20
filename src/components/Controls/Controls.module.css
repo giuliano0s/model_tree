@@ -68,6 +68,15 @@
   background: var(--color-bg-hover);
 }
 
+/* interrogação de ajuda — amarela, mesma família dos ícones */
+.about {
+  color: #f5c542;
+  font-weight: var(--font-weight-medium);
+}
+.about:hover {
+  background: rgba(245, 197, 66, 0.15);
+}
+
 /* hard reset discreto — quase invisível até o hover */
 .hardReset {
   align-self: flex-end;

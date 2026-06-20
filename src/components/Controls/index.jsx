@@ -9,6 +9,7 @@ export default function Controls({
   onSaveLayout,
   onResetLayout,
   onHardReset,
+  onAbout,
 }) {
   const { t } = useLang()
 
@@ -48,6 +49,7 @@ export default function Controls({
       </div>
 
       <div className={styles.group}>
+        <button className={`${styles.icon} ${styles.about}`} onClick={onAbout} title={t('about.open')} aria-label={t('about.open')}>?</button>
         <button className={styles.icon} onClick={onZoomIn} title={t('controls.zoomIn')} aria-label={t('controls.zoomIn')}>+</button>
         <button className={styles.icon} onClick={onZoomOut} title={t('controls.zoomOut')} aria-label={t('controls.zoomOut')}>−</button>
         <button className={styles.icon} onClick={onFit} title={t('controls.fit')} aria-label={t('controls.fit')}>⤢</button>

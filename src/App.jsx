@@ -6,6 +6,8 @@ import { findById } from './utils/treeUtils.js'
 import Tree from './components/Tree/index.jsx'
 import NavSidebar from './components/NavSidebar/index.jsx'
 import Chat from './components/Chat/index.jsx'
+import About from './components/About/index.jsx'
+import { tarotNode, TAROT_ID } from './data/tarot.js'
 import styles from './App.module.css'
 
 const LS_KEY = 'modeltree.layout'
@@ -26,13 +28,29 @@ export default function App() {
   const [panelClosing, setPanelClosing] = useState(false)          // painel em animação de saída?
   const [recOpen,      setRecOpen]      = useState(false)          // painel de recomendação aberto?
   const [chatMessages, setChatMessages] = useState([])             // histórico do chat (sobrevive a fechar/reabrir)
+  const [aboutOpen,    setAboutOpen]    = useState(false)          // modal "sobre o projeto" aberto?
+  const [tarotShown,   setTarotShown]   = useState(false)          // nó-surpresa revelado?
 
   const { t, lang } = useLang()
 
   // título da aba acompanha o idioma
   useEffect(() => { document.title = t('nav.title') }, [t])
 
-  const colorMap = useMemo(() => (treeData ? buildColorMap(treeData) : new Map()), [treeData])
+  // árvore exibida: a base + o nó-surpresa preso à raiz, quando revelado
+  const displayData = useMemo(() => {
+    if (!treeData || !tarotShown) return treeData
+    if ((treeData.children ?? []).some(c => c.id === TAROT_ID)) return treeData
+    return { ...treeData, children: [...(treeData.children ?? []), tarotNode(lang)] }
+  }, [treeData, tarotShown, lang])
+
+  // cores a partir da árvore BASE (3 ramos), para o nó-surpresa não alterar a
+  // distribuição espectral de ml/ai/st. O surpresa recebe um marrom escuro fixo.
+  const colorMap = useMemo(() => {
+    if (!treeData) return new Map()
+    const m = buildColorMap(treeData)
+    m.set(TAROT_ID, { h: 28, s: 38, l: 26 })
+    return m
+  }, [treeData])
 
   const offsetsReady = useRef(false)
   // snapshot do layout salvo pelo usuário — alvo do "Resetar" (soft)
@@ -214,11 +232,28 @@ export default function App() {
   // Clicar na navbar: foca + dá zoom no nó e abre o painel de info
   const handleNavigate = useCallback((id) => {
     setFocusReq({ id, nonce: Date.now() })
-    const found = findById(treeData, id)
+    const found = findById(displayData, id)
     if (found) selectNode(found)
-  }, [treeData, selectNode])
+  }, [displayData, selectNode])
 
-  const { query, setQuery, matchIds, ancestorIds, isActive } = useSearch(treeData)
+  // Easter egg: revela o nó-surpresa, fecha o modal e centraliza nele.
+  // só dispara o foco quando o nó já entrou na árvore renderizada (efeito abaixo).
+  const [pendingTarotFocus, setPendingTarotFocus] = useState(false)
+  const handleRevealSecret = useCallback(() => {
+    setTarotShown(true)
+    setAboutOpen(false)
+    setPendingTarotFocus(true)
+  }, [])
+
+  // centraliza no nó-surpresa assim que ele aparece no displayData
+  useEffect(() => {
+    if (!pendingTarotFocus) return
+    if (!findById(displayData, TAROT_ID)) return
+    handleNavigate(TAROT_ID)
+    setPendingTarotFocus(false)
+  }, [pendingTarotFocus, displayData, handleNavigate])
+
+  const { query, setQuery, matchIds, ancestorIds, isActive } = useSearch(displayData)
 
   if (loading) return <div className={styles.status}>{t('app.loading')}</div>
   if (error)   return <div className={styles.status}>{t('app.error')}: {error}</div>
@@ -227,7 +262,7 @@ export default function App() {
     <div className={styles.layout}>
       <aside className={`${styles.nav} ${navOpen ? '' : styles.navClosed}`}>
         <NavSidebar
-          rootData={treeData}
+          rootData={displayData}
           colorMap={colorMap}
           selectedId={selectedNode?.id}
           query={query}
@@ -253,7 +288,7 @@ export default function App() {
           </button>
         )}
         <Tree
-          rootData={treeData}
+          rootData={displayData}
           colorMap={colorMap}
           selectedNode={selectedNode}
           searchActive={isActive}
@@ -272,6 +307,8 @@ export default function App() {
           onHardReset={handleHardReset}
           onCloseDetail={requestCloseDetail}
           onPanelExited={handlePanelExited}
+          onAbout={() => setAboutOpen(true)}
+          dimmedId={TAROT_ID}
         />
       </main>
 
@@ -286,10 +323,17 @@ export default function App() {
       {recOpen && (
         <Chat
           onClose={() => setRecOpen(false)}
-          rootData={treeData}
+          rootData={displayData}
           onNavigate={handleNavigate}
           messages={chatMessages}
           setMessages={setChatMessages}
+        />
+      )}
+
+      {aboutOpen && (
+        <About
+          onClose={() => setAboutOpen(false)}
+          onRevealSecret={handleRevealSecret}
         />
       )}
     </div>

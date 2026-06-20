@@ -31,6 +31,8 @@ export default function Tree({
   onHardReset,
   onCloseDetail,
   onPanelExited,
+  onAbout,
+  dimmedId,
 }) {
   const svgRef   = useRef(null)
   const groupRef = useRef(null)
@@ -164,11 +166,12 @@ export default function Tree({
         searchActive={searchActive}
         isMatch={matchIds.has(node.data.id)}
         isAncestor={ancestorIds.has(node.data.id)}
+        isDimmed={node.data.id === dimmedId}
         onNodeClick={onNodeClick}
         onDrag={onDrag}
       />
     )
-  }), [nodes, posMap, colorMap, selId, intermediateIds, searchActive, matchIds, ancestorIds, onNodeClick, onDrag])
+  }), [nodes, posMap, colorMap, selId, intermediateIds, searchActive, matchIds, ancestorIds, dimmedId, onNodeClick, onDrag])
 
   return (
     <div className={styles.container}>
@@ -192,6 +195,7 @@ export default function Tree({
         onSaveLayout={onSaveLayout}
         onResetLayout={onResetLayout}
         onHardReset={onHardReset}
+        onAbout={onAbout}
       />
 
       {selectedNode && panelData && (

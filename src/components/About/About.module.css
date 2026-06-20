@@ -1,0 +1,65 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.panel {
+  background: #1c1c22;
+  color: #f2f2f2;
+  border-radius: 14px;
+  width: min(560px, 100%);
+  padding: 22px 26px 26px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.close {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.close:hover { color: #fff; }
+
+.body {
+  margin: 0 0 16px;
+  line-height: 1.6;
+  color: #d6d6dd;
+}
+
+.note {
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid #2f2f37;
+  font-size: 0.9rem;
+  color: #9a9aa6;
+}
+
+/* a palavra-isca: discreta, no tom do texto, sem gritar que é clicável */
+.secret {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: #4a4a55;
+  cursor: pointer;
+}
+.secret:hover { color: #d6d6dd; }
