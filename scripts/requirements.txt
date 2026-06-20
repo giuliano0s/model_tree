@@ -1,3 +1,4 @@
 openai
 python-dotenv
 upstash-vector
+google-genai

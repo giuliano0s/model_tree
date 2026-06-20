@@ -9,6 +9,8 @@
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
   height: 100%;
+  position: relative;
+  z-index: 20;
   background-color: var(--color-bg-surface);
   border-right: 1px solid var(--color-border);
   overflow: hidden;
@@ -67,7 +69,7 @@
   position: fixed;
   right: var(--space-4);
   top: var(--space-4);
-  z-index: 900;
+  z-index: 10;
   padding: 12px 18px;
   color: #fff;
   background: #4f8cff;

@@ -25,6 +25,7 @@ export default function App() {
   const [navOpen,      setNavOpen]      = useState(true)            // bandeja de navegação aberta?
   const [panelClosing, setPanelClosing] = useState(false)          // painel em animação de saída?
   const [recOpen,      setRecOpen]      = useState(false)          // painel de recomendação aberto?
+  const [chatMessages, setChatMessages] = useState([])             // histórico do chat (sobrevive a fechar/reabrir)
 
   const { t, lang } = useLang()
 
@@ -282,7 +283,15 @@ export default function App() {
       >
         ✨ {t('chat.open')}
       </button>
-      {recOpen && <Chat onClose={() => setRecOpen(false)} />}
+      {recOpen && (
+        <Chat
+          onClose={() => setRecOpen(false)}
+          rootData={treeData}
+          onNavigate={handleNavigate}
+          messages={chatMessages}
+          setMessages={setChatMessages}
+        />
+      )}
     </div>
   )
 }

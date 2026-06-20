@@ -26,12 +26,13 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
 .title {
   margin: 0;
+  margin-right: auto;
   font-size: 1.2rem;
 }
 
@@ -44,6 +45,49 @@
   cursor: pointer;
 }
 .close:hover { color: #fff; }
+
+/* segmented control de nível (Iniciante / Básico / Avançado) */
+.levels {
+  display: flex;
+  gap: 2px;
+  background: #26262e;
+  border: 1px solid #3a3a44;
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.levelBtn {
+  background: none;
+  border: none;
+  color: #9a9aa6;
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.levelBtn:hover { color: #f2f2f2; }
+
+.levelActive {
+  background: #4f8cff;
+  color: #fff;
+}
+.levelActive:hover { color: #fff; }
+
+/* botão de limpar a conversa */
+.reset {
+  background: none;
+  border: 1px solid #3a3a44;
+  color: #9a9aa6;
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.reset:hover { color: #f2f2f2; border-color: #565662; }
 
 .messages {
   flex: 1;
@@ -85,6 +129,15 @@
 .model ul { padding-left: 1.2em; }
 .model code { background: #1c1c22; padding: 1px 5px; border-radius: 4px; }
 .model hr { border: none; border-top: 1px solid #3a3a44; margin: 0.8em 0; }
+
+/* nome de modelo citado, clicável para focar o nó na árvore */
+.modelLink {
+  color: #7db4ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.modelLink:hover { color: #a9ccff; }
 
 .dots {
   color: #8a8a96;

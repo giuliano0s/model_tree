@@ -1,7 +1,7 @@
 // Gatekeeper: rate-limit por IP, com contadores no Upstash Redis.
 // Dois limitadores nomeados sobre o mesmo Redis (prefixos distintos):
-//   - searchLimiter:    folgado (só consome requests do Vector)
-//   - recommendLimiter: apertado (consome Vector + tokens do Gemini)
+//   - searchLimiter: folgado (só consome requests do Vector)
+//   - chatLimiter:   apertado (consome Vector + tokens do Gemini)
 
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
@@ -12,12 +12,6 @@ export const searchLimiter = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(20, "60 s"),
   prefix: "rl:search",
-});
-
-export const recommendLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, "60 s"),
-  prefix: "rl:recommend",
 });
 
 export const chatLimiter = new Ratelimit({

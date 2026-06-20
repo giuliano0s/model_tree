@@ -40,9 +40,9 @@ export function getPath(node, id, path = []) {
   return null
 }
 
-// minúsculas + remove acentos/diacríticos para comparação tolerante
+// minúsculas + remove acentos/diacríticos e traços para comparação tolerante
 const fold = (s) =>
-  String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[-–—]/g, '')
 
 /**
  * Filtra nós cujo name ou id contenha a query (case-insensitive e

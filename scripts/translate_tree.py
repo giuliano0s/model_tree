@@ -1,8 +1,8 @@
 """
-Traduz a árvore de modelos entre idiomas usando Cerebras (llama3.1-8b) via OpenAI SDK.
+Traduz a árvore de modelos entre idiomas via Gemini Flash (default) ou Cerebras (switch).
 
 Gera arquivos estáticos por idioma: data/models_tree.<dst>.json
-(o master em PT é data/models_tree.json).
+(o master é data/models_tree.en.json).
 
 Estratégia:
 - 1 chamada por nó: manda os campos de texto como JSON e pede JSON traduzido de
@@ -16,13 +16,13 @@ Uso:
     export CEREBRAS_API_KEY=...          # PowerShell: $env:CEREBRAS_API_KEY="..."
     pip install openai
     python scripts/translate_tree.py <dst> [src]
-        <dst> idioma destino (default: en)
-        [src] idioma origem  (default: pt)
+        <dst> idioma destino (default: pt)
+        [src] idioma origem  (default: en)
 
 Exemplos:
-    python scripts/translate_tree.py en        # pt -> en
-    python scripts/translate_tree.py es        # pt -> es
-    python scripts/translate_tree.py fr en     # en -> fr (usa models_tree.en.json como fonte)
+    python scripts/translate_tree.py pt        # en -> pt
+    python scripts/translate_tree.py es        # en -> es
+    python scripts/translate_tree.py fr        # en -> fr
 """
 
 import json
@@ -33,6 +33,8 @@ import time
 import copy
 from pathlib import Path
 from openai import OpenAI
+from google import genai
+from google.genai import types
 
 # carrega .env da raiz do projeto (se python-dotenv estiver instalado)
 try:
@@ -42,8 +44,8 @@ except ImportError:
     pass
 
 # ---------------------------------------------------------------- idiomas
-SRC_LANG = sys.argv[2] if len(sys.argv) > 2 else "pt"
-DST_LANG = sys.argv[1] if len(sys.argv) > 1 else "en"
+SRC_LANG = sys.argv[2] if len(sys.argv) > 2 else "en"
+DST_LANG = sys.argv[1] if len(sys.argv) > 1 else "pt"
 
 # nomes em inglês (para o prompt)
 LANG_NAMES = {
@@ -61,20 +63,24 @@ ROOT = Path(__file__).resolve().parent.parent
 # fonte: models_tree.<src>.json (master PT = models_tree.pt.json)
 SRC = ROOT / "data" / f"models_tree.{SRC_LANG}.json"
 if not SRC.exists():
-    SRC = ROOT / "data" / "models_tree.pt.json"
+    SRC = ROOT / "data" / "models_tree.en.json"
 OUT      = ROOT / "data" / f"models_tree.{DST_LANG}.json"
 CACHE    = ROOT / "scripts" / f"translations.{DST_LANG}.json"
 MANIFEST = ROOT / "data" / "languages.json"
 
 # ---------------------------------------------------------------- config
-# modelos disponíveis na Cerebras: gpt-oss-120b, zai-glm-4.7
-# (override com a env var CEREBRAS_MODEL, ex: CEREBRAS_MODEL=gpt-oss-120b)
-MODEL = os.getenv("CEREBRAS_MODEL", "zai-glm-4.7")
+# provider da tradução: "gemini" (default, usa a chave do enrich) ou "cerebras"
+# (switch com a env var TRANSLATE_PROVIDER)
+PROVIDER = os.getenv("TRANSLATE_PROVIDER", "gemini").lower()
+GEMINI_MODEL = os.getenv("GEMINI_TRANSLATE_MODEL", "gemini-2.5-flash")
+# Cerebras: gpt-oss-120b (não-reasoning) é mais consistente que o zai-glm-4.7
+CEREBRAS_MODEL = os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
+ACTIVE_MODEL = CEREBRAS_MODEL if PROVIDER == "cerebras" else GEMINI_MODEL
 
-# limite free tier ≈ 5 req/min e 30k tokens/min → traduzimos em LOTES de nós por
-# request e respeitamos um intervalo mínimo entre requests.
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", "5"))
-REQUEST_INTERVAL = float(os.getenv("REQUEST_INTERVAL", "12.5"))  # seg entre requests (~5/min)
+# traduz em LOTES de nós por request, com intervalo mínimo entre requests.
+# defaults calibrados para a API paga do Gemini; o retry com backoff cobre 429 eventuais.
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", "10"))
+REQUEST_INTERVAL = float(os.getenv("REQUEST_INTERVAL", "1.0"))  # seg entre requests
 
 # campos de texto a traduzir (id, year, children ficam intactos)
 STR_FIELDS  = ["name", "diff_siblings", "curiosity"]
@@ -116,7 +122,34 @@ SYSTEM = (
     "6. Return ONLY the JSON object, with no extra text, no markdown fences."
 )
 
-client = OpenAI(api_key=os.getenv("CEREBRAS_API_KEY"), base_url="https://api.cerebras.ai/v1")
+# clientes por provider (a chave do Gemini é a mesma do enrich)
+if PROVIDER == "cerebras":
+    _cerebras = OpenAI(api_key=os.getenv("CEREBRAS_API_KEY"), base_url="https://api.cerebras.ai/v1")
+else:
+    _gemini = genai.Client(api_key=os.getenv("GEMINI_ENRICH_API_KEY") or os.getenv("GEMINI_API_KEY"))
+
+# chama o LLM de tradução e devolve o texto (despacha pro provider ativo)
+def call_llm(system, user):
+    if PROVIDER == "cerebras":
+        resp = _cerebras.chat.completions.create(
+            model=CEREBRAS_MODEL,
+            temperature=0.2,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+        )
+        return resp.choices[0].message.content
+    resp = _gemini.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=user,
+        config=types.GenerateContentConfig(
+            system_instruction=system,
+            temperature=0.2,
+            response_mime_type="application/json",
+        ),
+    )
+    return resp.text
 
 
 # ---------------------------------------------------------------- helpers
@@ -172,15 +205,7 @@ def translate_batch(batch, max_retries=8):
     payload = json.dumps(batch, ensure_ascii=False)
     for attempt in range(max_retries):
         try:
-            resp = client.chat.completions.create(
-                model=MODEL,
-                temperature=0.2,
-                messages=[
-                    {"role": "system", "content": SYSTEM},
-                    {"role": "user", "content": payload},
-                ],
-            )
-            out = parse_json_loose(resp.choices[0].message.content)
+            out = parse_json_loose(call_llm(SYSTEM, payload))
             if isinstance(out, dict) and all(
                 nid in out and valid_shape(fields, out[nid]) for nid, fields in batch.items()
             ):
@@ -222,7 +247,7 @@ def main():
     if DST_LANG == SRC_LANG:
         raise SystemExit("Idioma origem e destino são iguais.")
 
-    print(f"Traduzindo {SRC_NAME} -> {DST_NAME}  (modelo: {MODEL}, lote: {BATCH_SIZE})")
+    print(f"Traduzindo {SRC_NAME} -> {DST_NAME}  ({PROVIDER}: {ACTIVE_MODEL}, lote: {BATCH_SIZE})")
     print(f"  fonte: {SRC.name}  →  saída: {OUT.name}")
 
     tree = load_json(SRC)
@@ -253,8 +278,10 @@ def main():
             last_req = time.time()
 
             result = translate_batch(batch)
-            for nid, fields in batch.items():
-                cache[nid] = result[nid] if result else fields  # fallback: original
+            # lote que falhou NÃO entra no cache: fica como faltando e é retentado depois
+            if result:
+                for nid in batch:
+                    cache[nid] = result[nid]
 
         done += len(group)
         status = "ok" if (not batch or result) else "FALHOU (manteve original)"
