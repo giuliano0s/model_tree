@@ -9,7 +9,9 @@ Estratégia:
   volta (o nó inteiro dá contexto → tradução mais consistente).
 - Glossário + regras no system prompt: NÃO traduz nomes próprios de algoritmos/
   bibliotecas e mantém o jargão técnico na forma convencional.
-- Cache incremental por idioma (scripts/translations.<dst>.json): retoma se parar.
+- Cache incremental por idioma (scripts/translations.<dst>.json): traduz APENAS nós
+  ainda não cacheados. Um nó já traduzido nunca é refeito pela máquina; reedições e
+  retraduções pontuais são manuais (apagar a entrada do nó no cache força só ele).
 - Montagem do arquivo final só no fim → JSON sempre válido.
 
 Uso:
@@ -147,6 +149,8 @@ def call_llm(system, user):
             system_instruction=system,
             temperature=0.2,
             response_mime_type="application/json",
+            # tradução é mecânica: sem raciocínio interno (corta thinking tokens, mais barato e rápido)
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
         ),
     )
     return resp.text
@@ -254,6 +258,8 @@ def main():
     cache = load_json(CACHE, {}) or {}
 
     nodes = flatten(tree, [])
+    # traduz apenas o que ainda NÃO está no cache. Um nó já traduzido permanece como está;
+    # reedições e retraduções pontuais são feitas manualmente (tradução nunca é refeita sozinha).
     todo = [n for n in nodes if n["id"] not in cache]
     print(f"Nós: {len(nodes)} | já traduzidos: {len(cache)} | faltando: {len(todo)}")
 
@@ -290,11 +296,12 @@ def main():
 
     save_json(CACHE, cache)
 
-    en_tree = copy.deepcopy(tree)
-    for node in flatten(en_tree, []):
+    # monta o arquivo final aplicando as traduções do cache sobre a árvore EN
+    out_tree = copy.deepcopy(tree)
+    for node in flatten(out_tree, []):
         for k, v in cache.get(node["id"], {}).items():
             node[k] = v
-    save_json(OUT, en_tree)
+    save_json(OUT, out_tree)
     update_manifest(DST_LANG)
     print(f"\nPronto → {OUT}")
 

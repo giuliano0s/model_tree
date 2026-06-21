@@ -11452,28 +11452,28 @@
             },
             {
               "id": "l321",
-              "name": "ConvNeXt V2 Segmentação Semântica",
+              "name": "EfficientNetV2",
               "year": 2021,
-              "diff_siblings": "Ao contrário das CNNs tradicionais, incorpora elementos de design de Vision Transformers e é co-projetado com uma estrutura de pré-treinamento de autoencoder mascarado totalmente convolucional (FCMAE) e uma nova camada de Normalização de Resposta Global (GRN) para melhorar o aprendizado auto-supervisionado.",
+              "diff_siblings": "Melhora outras CNNs usando uma busca de arquitetura neural (NAS) ciente do treinamento e uma técnica inédita de aprendizado progressivo que ajusta a regularização de forma adaptativa conforme o tamanho da imagem, resultando em treino mais rápido e maior eficiência de parâmetros.",
               "strengths": [
-                "Alcança desempenho de ponta (state-of-the-art) igual ou superior ao dos Vision Transformers em benchmarks como a segmentação ADE20K, mantendo a eficiência e simplicidade das arquiteturas convolucionais.",
-                "Altamente escalável, com modelos eficazes que variam de uma versão 'Atto' de 3,7M parâmetros a uma versão 'Huge' de mais de 650M parâmetros.",
-                "Excelentes capacidades de transfer learning para tarefas de predição densa, como segmentação semântica e detecção de objetos, após o pré-treinamento auto-supervisionado."
+                "Atinge desempenho estado da arte com muito menos parâmetros e tempos de treino mais rápidos do que modelos como Vision Transformers e seu antecessor, o EfficientNetV1.",
+                "Emprega blocos Fused-MBConv nas camadas iniciais, que aproveitam melhor os aceleradores de hardware modernos do que os blocos MBConv padrão usados no EfficientNetV1.",
+                "Usa uma estratégia de aprendizado progressivo, começando com imagens pequenas e regularização fraca e aumentando ambos gradualmente, o que acelera o treino e melhora a acurácia final."
               ],
               "weaknesses": [
-                "O desempenho depende de seu co-design específico; a simples aplicação do pré-treinamento de autoencoder mascarado à arquitetura ConvNeXt V1 original produz resultados abaixo do ideal.",
-                "Embora computacionalmente mais eficientes do que muitos transformers, os grandes modelos ConvNeXt V2 ainda possuem uma pegada computacional significativa, tornando a implantação em dispositivos com recursos limitados um desafio.",
-                "As melhorias arquitetônicas (como GRN) são especificamente projetadas para superar problemas como o colapso de características durante o pré-treinamento mascarado, adicionando complexidade não presente em CNNs mais simples."
+                "A técnica de aprendizado progressivo adiciona complexidade ao processo de treino, exigindo ajuste cuidadoso do tamanho da imagem e dos cronogramas de regularização.",
+                "Embora eficientes, as convoluções depthwise nos blocos MBConv podem ser um gargalo em alguns aceleradores de hardware em comparação com convoluções padrão.",
+                "Os ganhos de desempenho resultam de uma interação complexa entre busca de arquitetura, escalonamento e métodos de treino, dificultando a replicação ou modificação sem amplos recursos computacionais."
               ],
               "recommended_for": [
-                "Segmentação semântica e detecção de objetos de alta precisão, onde pode servir como uma poderosa rede backbone.",
-                "Cenários que exigem uma arquitetura puramente convolucional que possa igualar ou exceder o desempenho de transformers sem a complexidade quadrática da self-attention global."
+                "Tarefas de classificação de imagens em que alta acurácia, treino rápido e eficiência de parâmetros são todos críticos.",
+                "Uso como backbone de alto desempenho para transfer learning em outras tarefas de visão computacional, como detecção de objetos e segmentação semântica."
               ],
               "not_recommended_for": [
-                "Aplicações em tempo real em dispositivos de borda onde a latência e os recursos computacionais são severamente limitados.",
-                "Tarefas onde as dependências globais e de longo alcance capturadas por transformers são inerentemente mais críticas do que o viés indutivo de localidade das CNNs."
+                "Aplicações em dispositivos extremamente limitados em recursos, onde mesmo suas variantes menores podem ser exigentes demais frente a modelos como o MobileNet.",
+                "Tarefas em que a principal preocupação é a interpretabilidade do modelo, devido à sua arquitetura complexa gerada por busca."
               ],
-              "curiosity": "O desenvolvimento do modelo foi motivado pela observação de que a simples aplicação da bem-sucedida estratégia auto-supervisionada de autoencoder mascarado (MAE) de transformers à arquitetura ConvNeXt (V1) original resultou em um desempenho inesperadamente ruim, levando ao co-design da nova arquitetura e método de pré-treinamento (Woo et al., 2023).",
+              "curiosity": "Desenvolvido pelos pesquisadores do Google Research Mingxing Tan e Quoc V. Le, o modelo foi encontrado por uma busca de arquitetura neural que otimizou conjuntamente acurácia, velocidade de treino e eficiência de parâmetros.",
               "keywords": [
                 "efficientnetv2",
                 "image classification",
@@ -12557,28 +12557,28 @@
                 },
                 {
                   "id": "l320",
-                  "name": "ConvNeXt V2 Detecção de Objetos",
+                  "name": "DINOv2",
                   "year": 2023,
-                  "diff_siblings": "Ao contrário de seu predecessor ConvNeXt V1, o V2 é co-projetado com uma estratégia de pré-treinamento auto-supervisionado usando um autoencoder mascarado totalmente convolucional (FCMAE) e incorpora uma nova camada de Normalização de Resposta Global (GRN) para prevenir o colapso de características, melhorando o desempenho em tarefas subsequentes.",
+                  "diff_siblings": "Distingue-se de outros Vision Transformers pelo seu pré-treinamento self-supervised em um conjunto de dados curado e massivo, que produz features visuais de propósito geral excelentes em tarefas downstream com pouco ou nenhum fine-tuning.",
                   "strengths": [
-                    "Alcança desempenho de ponta (state-of-the-art), superando backbones Vision Transformer comparáveis (por exemplo, Swin Transformer) em benchmarks de detecção de objetos COCO.",
-                    "Arquitetura altamente escalável com vários tamanhos (de Atto a Huge) permite um equilíbrio entre precisão e custo computacional.",
-                    "Aproveita efetivamente grandes quantidades de dados não rotulados através de seu pré-treinamento de autoencoder mascarado, melhorando a representação de características."
+                    "Produz features visuais poderosas e de propósito geral, aplicáveis a muitas tarefas downstream como classificação, segmentação e estimativa de profundidade.",
+                    "Atinge desempenho estado da arte com classificadores lineares simples, muitas vezes superando modelos supervisionados.",
+                    "Reduz a necessidade de grandes conjuntos de dados rotulados e de fine-tuning custoso para novas tarefas."
                   ],
                   "weaknesses": [
-                    "Variantes de modelos maiores podem ser computacionalmente caras e intensivas em memória, tornando-as menos adequadas para ambientes com recursos limitados.",
-                    "Os ganhos de desempenho em relação à V1 são principalmente da metodologia avançada de pré-treinamento, e não de uma mudança arquitetônica fundamental.",
-                    "Embora de alto desempenho, ainda depende do viés indutivo convolucional, que pode ser menos eficaz do que os mecanismos de attention para capturar dependências verdadeiramente globais e de longo alcance em alguns contextos."
+                    "Custo computacional e requisito de dados extremamente altos na fase inicial de pré-treinamento.",
+                    "O grande conjunto de pré-treinamento não curado pode codificar vieses sociais nas features aprendidas.",
+                    "O desempenho pode ser menor em dados fora do domínio (ex.: imagens médicas) sem pré-treinamento adaptado ao domínio."
                   ],
                   "recommended_for": [
-                    "Detecção de objetos e segmentação de instâncias de alta precisão em conjuntos de dados complexos como COCO.",
-                    "Cenários onde um backbone forte e pré-treinado é necessário para transfer learning para várias tarefas de visão computacional."
+                    "Extração de features para uma ampla gama de tarefas de visão computacional, especialmente com poucos dados rotulados.",
+                    "Estabelecer fortes baselines de desempenho para tarefas como classificação de imagens, segmentação semântica e estimativa de profundidade."
                   ],
                   "not_recommended_for": [
-                    "Aplicações em tempo real em dispositivos de borda ou móveis onde baixa latência e pequena pegada de memória são críticas.",
-                    "Tarefas que exigem treinamento do zero com dados limitados, pois suas principais vantagens vêm do pré-treinamento auto-supervisionado em larga escala."
+                    "Treinar do zero em ambientes com recursos limitados.",
+                    "Inferência em tempo real em dispositivos de baixa potência, embora existam versões destiladas menores."
                   ],
-                  "curiosity": "A família ConvNeXt foi desenvolvida modernizando sistematicamente uma ResNet padrão para emular o design dos Vision Transformers, demonstrando que muitos dos ganhos de desempenho dos ViTs vieram de escolhas de design arquitetônico, e não do mecanismo de attention em si.",
+                  "curiosity": "Sem nenhuma supervisão 3D explícita, suas features aprendidas permitiram alcançar resultados estado da arte em benchmarks de estimativa de profundidade monocular.",
                   "keywords": [
                     "self-supervised learning",
                     "vision transformer",
@@ -12598,28 +12598,28 @@
                 },
                 {
                   "id": "l322",
-                  "name": "ConvNeXt V2 Segmentação de Instâncias",
+                  "name": "MaxViT",
                   "year": 2022,
-                  "diff_siblings": "Melhora o ConvNeXt original incorporando uma estratégia de aprendizado auto-supervisionado via um autoencoder mascarado totalmente convolucional (FCMAE) e uma camada de Normalização de Resposta Global (GRN) para aumentar a diversidade de características.",
+                  "diff_siblings": "É uma arquitetura híbrida que combina em série blocos convolucionais (MBConv) com um mecanismo inédito de multi-axis attention, que decompõe a attention em formas locais esparsas (em blocos) e globais (dilatadas/em grade) para alcançar complexidade linear e um campo receptivo global em cada estágio da rede.",
                   "strengths": [
-                    "Alcança desempenho de ponta (state-of-the-art) competitivo ou superior aos modelos Vision Transformer em benchmarks como COCO.",
-                    "Beneficia-se de um design puramente convolucional, que pode ser mais eficiente e simples de implementar do que backbones baseados em transformer.",
-                    "Aprende efetivamente representações robustas a partir de dados não rotulados através de seu pré-treinamento de autoencoder mascarado, melhorando o desempenho de fine-tuning."
+                    "Atinge complexidade computacional linear em relação ao tamanho da imagem, tornando-se escalável para entradas de alta resolução.",
+                    "Combina a força de extração de features locais das CNNs com a modelagem de contexto global dos Transformers em cada nível hierárquico.",
+                    "Demonstra desempenho estado da arte em uma ampla gama de tarefas de visão, incluindo classificação, detecção de objetos e segmentação."
                   ],
                   "weaknesses": [
-                    "Os ganhos de desempenho dependem fortemente do co-design específico da arquitetura e da estrutura de pré-treinamento auto-supervisionado.",
-                    "Os maiores modelos, embora poderosos, são computacionalmente caros e possuem altas contagens de parâmetros (até 650M).",
-                    "Pode ficar ligeiramente atrás dos maiores modelos Vision Transformer em certos cenários de aprendizado auto-supervisionado, que podem se beneficiar mais da arquitetura transformer."
+                    "Os blocos de multi-axis attention podem ser computacionalmente intensivos em comparação com CNNs puras, especialmente em variantes maiores do modelo.",
+                    "Seu desempenho pode ser sensível ao arranjo específico e aos hiperparâmetros dos blocos convolucionais e de attention.",
+                    "Como outros Transformers, geralmente exige grandes conjuntos de dados para pré-treinamento a fim de atingir seu pico de desempenho e generalização."
                   ],
                   "recommended_for": [
-                    "Segmentação de instâncias de alta precisão para cenas complexas em aplicações acadêmicas e comerciais.",
-                    "Servir como um poderoso backbone em estruturas de detecção e segmentação de objetos como Mask R-CNN."
+                    "Tarefas de visão computacional em alta resolução, como detecção de objetos, segmentação de instâncias e análise de imagens médicas.",
+                    "Uso como backbone poderoso e escalável para um amplo espectro de tarefas de reconhecimento e geração visual."
                   ],
                   "not_recommended_for": [
-                    "Aplicações em dispositivos com recursos altamente limitados devido ao custo computacional de variantes maiores.",
-                    "Tarefas onde o treinamento do zero é necessário sem acesso a grandes conjuntos de dados de pré-treinamento não rotulados."
+                    "Cenários com poucos recursos, onde os dados de treino e os orçamentos computacionais são muito limitados.",
+                    "Tarefas em que a equivariância translacional pura, um forte viés indutivo das CNNs, é crítica e não é complementada pela attention."
                   ],
-                  "curiosity": "O modelo foi explicitamente co-projetado por Sanghyun Woo et al. (2023) para tornar o pré-treinamento de autoencoder mascarado, uma técnica que funcionou bem para Vision Transformers, eficaz para ConvNets, abordando uma lacuna de desempenho observada ao combinar ingenuamente os dois.",
+                  "curiosity": "O módulo central de Multi-Axis attention foi projetado para ser tão universal que seus blocos podem ser empilhados hierarquicamente, à semelhança de uma ResNet clássica, permitindo que ele 'enxergue' globalmente mesmo nos estágios iniciais e de alta resolução da rede (Tu et al., 2022).",
                   "keywords": [
                     "vision transformer",
                     "hybrid cnn-transformer",
@@ -12928,28 +12928,28 @@
                 },
                 {
                   "id": "l324",
-                  "name": "DINOv2 Detecção de Objetos",
+                  "name": "Segment Anything Model (SAM)",
                   "year": 2023,
-                  "diff_siblings": "Distingue-se pelo seu pré-treinamento auto-supervisionado em um enorme conjunto de dados curado, produzindo características visuais altamente generalizáveis que se destacam em tarefas subsequentes como detecção de objetos com fine-tuning mínimo.",
+                  "diff_siblings": "Ao contrário dos transformers multimodais focados em classificação ou recuperação (ex.: CLIP), o SAM é uma arquitetura generativa especializada que produz máscaras de segmentação a partir de prompts espaciais ou, em versões posteriores, baseados em texto.",
                   "strengths": [
-                    "Alcança desempenho de ponta (state-of-the-art) em várias tarefas de visão com apenas um classificador linear leve treinado sobre suas características congeladas.",
-                    "Aprende características robustas e de uso geral que reduzem a necessidade de grandes conjuntos de dados rotulados para a tarefa alvo.",
-                    "As características visuais aprendidas transferem-se bem entre diferentes domínios e tarefas, incluindo classificação, segmentação e estimativa de profundidade."
+                    "Excelente generalização zero-shot para objetos e domínios de imagem nunca vistos, sem treino específico para a tarefa.",
+                    "Interface 'promptável' altamente flexível, aceitando pontos, caixas e texto para guiar a segmentação.",
+                    "Produz máscaras de objetos detalhadas e de alta qualidade."
                   ],
                   "weaknesses": [
-                    "A fase inicial de pré-treinamento auto-supervisionado tem um custo computacional extremamente alto e requer um conjunto de dados massivo e curado.",
-                    "Tamanhos de modelo grandes podem ser proibitivos para implantação em dispositivos com recursos limitados ou de borda.",
-                    "O desempenho pode degradar em dados fora do domínio (por exemplo, imagens médicas) sem pré-treinamento adicional adaptado ao domínio."
+                    "Não atribui rótulos semânticos às máscaras, identificando 'o quê' mas não 'que tipo'.",
+                    "O desempenho pode degradar em domínios especializados (ex.: médico, aéreo) e com objetos de baixo contraste.",
+                    "O encoder Vision Transformer é computacionalmente custoso, dificultando a aplicação em tempo real em dispositivos de borda."
                   ],
                   "recommended_for": [
-                    "Cenários de detecção de objetos com dados de treinamento rotulados limitados.",
-                    "Estabelecer um forte backbone de extração de características para sistemas complexos de visão computacional."
+                    "Acelerar a anotação e rotulagem de dados para conjuntos de dados de visão computacional.",
+                    "Ferramentas interativas de edição de imagem para seleção, remoção e manipulação de objetos."
                   ],
                   "not_recommended_for": [
-                    "Aplicações em tempo real em dispositivos de borda de baixa potência devido ao tamanho do modelo e aos requisitos computacionais.",
-                    "Problemas onde um modelo mais simples e totalmente supervisionado treinado em dados rotulados amplos é suficiente e mais eficiente."
+                    "Tarefas que exigem segmentação de vídeo em tempo real em hardware com recursos limitados.",
+                    "Aplicações que precisam de predições de classe semântica prontas (ex.: 'carro', 'pessoa')."
                   ],
-                  "curiosity": "O nome DINO significa 'self-DIstillation with NO labels' (auto-destilação sem rótulos), referenciando sua arquitetura aluno-professor onde o modelo aprende sem anotações fornecidas por humanos.",
+                  "curiosity": "O modelo foi treinado no conjunto de dados SA-1B, que contém mais de 1,1 bilhão de máscaras de segmentação em 11 milhões de imagens, criado por um processo human-in-the-loop em que o próprio modelo ajudava os anotadores.",
                   "keywords": [
                     "segment anything model",
                     "sam",
@@ -12971,28 +12971,28 @@
                 },
                 {
                   "id": "l325",
-                  "name": "DINOv2 Segmentação",
+                  "name": "Whisper",
                   "year": 2022,
-                  "diff_siblings": "Ao contrário de outros Vision Transformers que frequentemente dependem de pré-treinamento supervisionado, o DINOv2 usa uma abordagem auto-supervisionada combinando auto-destilação em nível de imagem e patch em um conjunto de dados massivo e curado, produzindo características visuais altamente robustas e de uso geral que se destacam em tarefas densas em nível de pixel, como segmentação, com fine-tuning mínimo ou nenhum.",
+                  "diff_siblings": "É um Transformer encoder-decoder fracamente supervisionado, especializado em processamento robusto, multilíngue e multitarefa de fala para texto, treinado em um conjunto de dados massivo e diverso de 680.000 horas de áudio coletado da web.",
                   "strengths": [
-                    "Produz características visuais de ponta (state-of-the-art) e de uso geral, adequadas para uma ampla gama de tarefas subsequentes, incluindo segmentação, sem pré-treinamento específico da tarefa.",
-                    "Excelente desempenho em tarefas de predição densa (por exemplo, segmentação semântica, estimativa de profundidade) com forte generalização, frequentemente exigindo apenas um classificador linear simples sobre o backbone congelado.",
-                    "Reduz a dependência de grandes conjuntos de dados rotulados devido à sua natureza auto-supervisionada, permitindo um forte desempenho em configurações zero-shot ou few-shot."
+                    "Alta acurácia e robustez a sotaques, ruído de fundo e linguagem técnica.",
+                    "Faz transcrição multilíngue (99 idiomas) e tradução para o inglês em um único modelo.",
+                    "Generalização zero-shot para conjuntos de dados e domínios diversos sem fine-tuning específico para a tarefa."
                   ],
                   "weaknesses": [
-                    "O processo de pré-treinamento é computacionalmente muito caro, exigindo infraestrutura em larga escala e um grande conjunto de dados curado.",
-                    "Embora as características sejam de uso geral, o desempenho pode ficar aquém em dados altamente especializados e fora do domínio (por exemplo, imagens médicas) sem pré-treinamento adicional adaptado ao domínio.",
-                    "O modelo base é projetado para extração de características e não é inerentemente generativo; sua aplicação direta é para tarefas discriminativas."
+                    "Pode 'alucinar' texto, especialmente em períodos de silêncio ou com áudio que não é fala.",
+                    "Não faz diarização de locutores (identificar 'quem falou quando') de forma nativa.",
+                    "O desempenho é menor para idiomas de poucos recursos, sub-representados nos dados de treino."
                   ],
                   "recommended_for": [
-                    "Tarefas de segmentação semântica ou de instâncias onde dados rotulados são escassos ou caros de adquirir.",
-                    "Extrair um backbone de características visuais robusto e de uso geral para uma variedade de aplicações de visão computacional além da segmentação, como classificação e estimativa de profundidade."
+                    "Reconhecimento automático de fala (ASR) e transcrição de propósito geral.",
+                    "Traduzir fala de múltiplos idiomas diretamente para texto em inglês."
                   ],
                   "not_recommended_for": [
-                    "Aplicações em tempo real em dispositivos de borda com recursos limitados ou de baixa potência devido ao grande tamanho do modelo.",
-                    "Tarefas generativas como síntese de imagem ou transferência de estilo."
+                    "Aplicações de streaming em tempo real e baixa latência sem adaptações especializadas.",
+                    "Identificar ou separar nativamente diferentes locutores em um único arquivo de áudio."
                   ],
-                  "curiosity": "As características aprendidas pelo DINOv2 são tão eficazes que seus mapas de attention podem frequentemente produzir segmentações semânticas de alta qualidade de objetos e partes sem qualquer supervisão ou fine-tuning.",
+                  "curiosity": "O modelo foi treinado em 680.000 horas de dados de áudio 'fracamente supervisionados' coletados da web, uma escala e diversidade que viabilizaram seu robusto desempenho zero-shot.",
                   "keywords": [
                     "automatic speech recognition",
                     "asr",
@@ -13484,28 +13484,28 @@
             },
             {
               "id": "l323",
-              "name": "DINOv2 Classificação",
+              "name": "TabPFN",
               "year": 2022,
-              "diff_siblings": "Distingue-se pelo seu treinamento auto-supervisionado em um grande conjunto de dados curado, combinando auto-destilação (DINO) e modelagem de imagem mascarada (iBOT) para aprender características visuais robustas que generalizam bem sem fine-tuning específico da tarefa.",
+              "diff_siblings": "É um modelo baseado em Transformer projetado especificamente para classificação tabular de pequena escala, enquanto seus irmãos focam em modalidades como linguagem natural, visão computacional ou séries temporais. Opera sem exigir ajuste de hiperparâmetros, fazendo in-context learning sobre os dados de treino fornecidos em uma única passagem direta.",
               "strengths": [
-                "Produz características visuais de alto desempenho e de uso geral, adequadas para várias tarefas subsequentes sem fine-tuning.",
-                "Reduz a dependência de grandes conjuntos de dados rotulados através de um aprendizado auto-supervisionado eficaz.",
-                "Alcança resultados de ponta (state-of-the-art) ou competitivos em benchmarks para classificação, segmentação e estimativa de profundidade."
+                "Inferência extremamente rápida, muitas vezes produzindo predições em menos de um segundo em conjuntos de dados pequenos.",
+                "Não exige ajuste de hiperparâmetros, simplificando o pipeline de modelagem.",
+                "Atinge desempenho estado da arte em tarefas de classificação tabular de pequena escala (tipicamente <= 1000 amostras), muitas vezes superando modelos baseados em árvores ajustados."
               ],
               "weaknesses": [
-                "O pré-treinamento é computacionalmente muito caro, exigindo clusters de GPU em larga escala.",
-                "O desempenho pode degradar em dados fora do domínio (por exemplo, imagens médicas) sem pré-treinamento adicional adaptado ao domínio.",
-                "As características aprendidas, embora poderosas, podem ser menos interpretáveis do que as de seu predecessor, DINOv1."
+                "A versão original é limitada a conjuntos de dados pequenos (ex.: <= 1000 linhas, <= 100 features, <= 10 classes).",
+                "Projetado primariamente para classificação; não aplicável a tarefas de regressão na sua versão inicial.",
+                "O desempenho pode degradar em conjuntos de dados com alta dimensionalidade ou muitas features categóricas."
               ],
               "recommended_for": [
-                "Extração de características para uma ampla gama de tarefas de visão computacional, incluindo classificação de imagens, detecção de objetos e segmentação semântica.",
-                "Aplicações onde dados rotulados são escassos ou caros de obter, aproveitando sua forte base auto-supervisionada."
+                "Prototipagem rápida e estabelecimento de fortes baselines para problemas de classificação tabular de pequena escala.",
+                "Pipelines de AutoML em que a velocidade de inferência e o zero-tuning são críticos para dados de pequena escala."
               ],
               "not_recommended_for": [
-                "Ambientes com recursos limitados onde o custo computacional do pré-treinamento ou mesmo da inferência com modelos grandes é proibitivo.",
-                "Tarefas que exigem características semânticas altamente interpretáveis, onde modelos como DINOv1 podem ser mais adequados."
+                "Conjuntos de dados de larga escala que excedam a janela de contexto do modelo (ex.: >10.000 amostras).",
+                "Conjuntos de dados de alta dimensionalidade, onde o desempenho pode ser pior que o de modelos mais simples."
               ],
-              "curiosity": "O conjunto de dados de pré-treinamento DINOv2, LVD-142M, foi criado através de um pipeline automático que curou 142 milhões de imagens de um rastreamento web maior e não curado.",
+              "curiosity": "O TabPFN é uma Prior-Data Fitted Network (PFN) pré-treinada em milhões de conjuntos de dados sintéticos gerados a partir de modelos causais estruturais, o que lhe permite aproximar a inferência Bayesiana em um novo conjunto de dados em uma única passagem direta.",
               "keywords": [
                 "tabular classification",
                 "transformer",
@@ -14450,51 +14450,51 @@
               "id": "ai-neural-rendering-v",
               "name": "Neural Rendering / Síntese de Vistas",
               "year": null,
-              "diff_siblings": "Unlike GANs, VAEs, and Diffusion, which sample new instances from a learned data distribution, this family reconstructs a specific 3D scene from a set of posed 2D images and renders photorealistic novel viewpoints of it via differentiable volumetric or splatting-based rendering.",
+              "diff_siblings": "Ao contrário de GANs, VAEs e Diffusion, que amostram novas instâncias de uma distribuição de dados aprendida, esta família reconstrói uma cena 3D específica a partir de um conjunto de imagens 2D com pose conhecida e renderiza vistas inéditas fotorrealistas dela por meio de renderização volumétrica diferenciável ou baseada em splatting.",
               "strengths": [
-                "Photorealistic novel-view synthesis with view-dependent effects (specular highlights, reflections) from only sparse posed images",
-                "Encodes geometry and appearance as a continuous, compact 3D representation, often beating photogrammetry on thin structures and low-texture surfaces",
-                "Real-time rendering once fitted (3D Gaussian Splatting reaches 1080p at over 100 fps)"
+                "Síntese de vistas inéditas fotorrealista com efeitos dependentes do ponto de vista (reflexos especulares, reflexões) a partir de poucas imagens com pose conhecida",
+                "Codifica geometria e aparência como uma representação 3D contínua e compacta, muitas vezes superando a fotogrametria em estruturas finas e superfícies de baixa textura",
+                "Renderização em tempo real depois de ajustada (3D Gaussian Splatting atinge 1080p a mais de 100 fps)"
               ],
               "weaknesses": [
-                "Per-scene optimization with no inherent generalization: each new scene must be fit from scratch",
-                "Heavy compute and memory cost (NeRF training takes hours to days; Gaussian splats need roughly 500 MB to 1.5 GB per scene)",
-                "Struggles with dynamic, deformable, or large unbounded scenes and is prone to aliasing and floater artifacts"
+                "Otimização por cena, sem generalização inerente: cada cena nova precisa ser ajustada do zero",
+                "Alto custo de computação e memória (o treino do NeRF leva horas a dias; os splats Gaussianos exigem cerca de 500 MB a 1,5 GB por cena)",
+                "Tem dificuldade com cenas dinâmicas, deformáveis ou grandes e ilimitadas, e é propensa a aliasing e artefatos flutuantes"
               ],
               "recommended_for": [
-                "Free-viewpoint VR/AR capture and digital twins of real environments from casual photo or video sets",
-                "High-fidelity 3D reconstruction for cultural heritage, product visualization, and robotics/SLAM scene mapping"
+                "Captura de VR/AR com ponto de vista livre e gêmeos digitais de ambientes reais a partir de conjuntos casuais de fotos ou vídeo",
+                "Reconstrução 3D de alta fidelidade para patrimônio cultural, visualização de produtos e mapeamento de cenas em robótica/SLAM"
               ],
               "not_recommended_for": [
-                "Generating novel, never-seen objects or scenes from a prompt or noise (use Diffusion or GANs instead)",
-                "Real-time reconstruction of fast dynamic scenes or single-image-to-3D under tight latency and storage budgets"
+                "Gerar objetos ou cenas inéditas, nunca vistas, a partir de um prompt ou ruído (use Diffusion ou GANs)",
+                "Reconstrução em tempo real de cenas dinâmicas rápidas ou single-image-to-3D sob orçamentos apertados de latência e armazenamento"
               ],
-              "curiosity": "NeRF was introduced by Mildenhall et al. (2020); 3D Gaussian Splatting by Kerbl et al. (2023) replaced the slow MLP ray-marching with rasterized anisotropic 3D Gaussians, won Best Paper at SIGGRAPH 2023, and enabled real-time radiance-field rendering.",
+              "curiosity": "O NeRF foi introduzido por Mildenhall et al. (2020); o 3D Gaussian Splatting de Kerbl et al. (2023) substituiu o lento ray-marching por MLP por Gaussianas 3D anisotrópicas rasterizadas, ganhou o Best Paper no SIGGRAPH 2023 e viabilizou a renderização de campos de radiância em tempo real.",
               "children": [
                 {
                   "id": "l326",
-                  "name": "DINOv2 Estimativa de Profundidade",
+                  "name": "3D Gaussian Splatting",
                   "year": 2023,
-                  "diff_siblings": "É uma aplicação específica do modelo de fundação auto-supervisionado DINOv2, fine-tuned com uma cabeça de decodificador para a tarefa de predição densa de estimativa de profundidade monocular, enquanto outras aplicações de Vision Transformer se concentram em tarefas como classificação ou segmentação.",
+                  "diff_siblings": "Ao contrário de representações neurais implícitas como o NeRF, que usam um MLP baseado em coordenadas para representar a cena, o 3D Gaussian Splatting usa um conjunto explícito de milhões de Gaussianas 3D que são rasterizadas diretamente, permitindo treino muito mais rápido e renderização em tempo real.",
                   "strengths": [
-                    "Alcança desempenho de ponta (state-of-the-art) e zero-shot em tarefas de estimativa de profundidade devido ao poderoso pré-treinamento auto-supervisionado em um conjunto de dados massivo e curado.",
-                    "Demonstra forte generalização e robustez em diferentes domínios visuais sem exigir fine-tuning em novos conjuntos de dados alvo.",
-                    "As características visuais aprendidas são densas e capturam detalhes finos, tornando-as altamente eficazes para tarefas em nível de pixel, como predição de profundidade."
+                    "Permite síntese de vistas inéditas fotorrealista e de alta qualidade em taxas de quadros em tempo real (muitas vezes acima de 100 FPS).",
+                    "Os tempos de treino são significativamente mais rápidos que os da maioria das variantes de Neural Radiance Field (NeRF).",
+                    "A representação explícita baseada em pontos se destaca em capturar detalhes finos e estruturas complexas e delgadas."
                   ],
                   "weaknesses": [
-                    "O modelo base produz mapas de profundidade relativos, não escalados metricamente, e requer que uma cabeça de decodificador específica da tarefa (por exemplo, DPT) seja adicionada e treinada.",
-                    "Alto custo computacional e uso de memória devido à grande arquitetura Vision Transformer (ViT), tornando a aplicação em tempo real em dispositivos restritos um desafio.",
-                    "O desempenho pode ser limitado pelo conjunto de dados de pré-treinamento; pode ter dificuldades com cenas altamente incomuns ou parâmetros de câmera não bem representados nos dados."
+                    "A representação da cena exige grande consumo de memória e armazenamento, muitas vezes centenas de megabytes ou mais.",
+                    "Editar a cena manipulando ou removendo objetos não é trivial devido à natureza não estruturada dos milhões de Gaussianas.",
+                    "A representação explícita carece de uma superfície bem definida, dificultando o uso para análise geométrica ou tarefas que exigem uma mesh."
                   ],
                   "recommended_for": [
-                    "Estimativa de profundidade monocular para compreensão de cena 3D, robótica e realidade aumentada.",
-                    "Aplicações que exigem predição de profundidade robusta em ambientes diversos e não vistos onde dados rotulados são escassos."
+                    "Criar gêmeos digitais e fly-throughs fotorrealistas de cenas estáticas para VR/AR e produção virtual.",
+                    "Captura e visualização 3D rápida de objetos e ambientes onde a velocidade de renderização é crítica."
                   ],
                   "not_recommended_for": [
-                    "Desempenho em tempo real em dispositivos com recursos limitados ou de borda.",
-                    "Aplicações que exigem precisão de profundidade métrica absoluta sem qualquer possibilidade de fine-tuning em pelo menos um pequeno conjunto de dados rotulados."
+                    "Aplicações com limitações estritas de memória ou armazenamento devido ao grande tamanho dos arquivos.",
+                    "Projetos que exigem medições geométricas precisas, edição ou análise tipicamente feitas em meshes 3D."
                   ],
-                  "curiosity": "O modelo de fundação DINOv2 foi pré-treinado em um conjunto de dados curado de 142 milhões de imagens, que foi compilado usando um pipeline automático para filtrar e selecionar imagens diversas de um rastreamento web maior e não curado.",
+                  "curiosity": "O desempenho em tempo real da técnica é alcançado por um rasterizador diferenciável customizado que projeta e ordena as Gaussianas 3D no plano de imagem 2D para renderização eficiente e backpropagation do gradiente.",
                   "keywords": [
                     "3d gaussian splatting",
                     "novel view synthesis",
@@ -14515,28 +14515,28 @@
                 },
                 {
                   "id": "l327",
-                  "name": "EfficientNetV2 Classificação",
+                  "name": "NeRF (Neural Radiance Fields)",
                   "year": 2020,
-                  "diff_siblings": "Melhora o EfficientNetV1 usando uma busca de arquitetura neural (NAS) ciente do treinamento e uma estratégia de escalonamento não uniforme, introduzindo blocos Fused-MBConv nas camadas iniciais para acelerar o treinamento sem sacrificar a eficiência de parâmetros.",
+                  "diff_siblings": "Ao contrário de métodos que produzem representações 3D explícitas como meshes ou nuvens de pontos, o NeRF usa uma rede neural profunda para aprender uma representação volumétrica implícita e contínua de uma cena, codificando tanto a geometria quanto a aparência dependente do ponto de vista.",
                   "strengths": [
-                    "Alcança velocidades de treinamento mais rápidas (até 11x) e melhor eficiência de parâmetros (até 6,8x menor) em comparação com outros modelos de ponta (state-of-the-art).",
-                    "Emprega aprendizado progressivo com regularização adaptativa, que aumenta dinamicamente o tamanho da imagem e a força da regularização para melhorar a precisão e acelerar o treinamento.",
-                    "A arquitetura, encontrada via uma NAS ciente do treinamento, otimiza conjuntamente a precisão, a velocidade de treinamento e o tamanho do modelo, tornando-o altamente eficiente em aceleradores modernos."
+                    "Renderiza vistas inéditas fotorrealistas e de alta resolução, com geometria complexa e efeitos dependentes do ponto de vista, como reflexões e translucidez.",
+                    "Representa cenas em um formato contínuo e compacto (poucos megabytes para os pesos da rede), sem geometria 3D explícita.",
+                    "Lida com superfícies complexas, não-Lambertianas, e detalhes finos que são desafiadores para a fotogrametria tradicional."
                   ],
                   "weaknesses": [
-                    "A estratégia de aprendizado progressivo adiciona complexidade ao processo de treinamento, exigindo um ajuste cuidadoso dos cronogramas de regularização juntamente com os tamanhos das imagens.",
-                    "Embora eficientes, as convoluções depthwise usadas nos blocos MBConv de estágio posterior podem ser lentas em alguns hardwares devido à reutilização limitada de memória.",
-                    "A estratégia de escalonamento não uniforme, embora eficaz, é uma heurística que adiciona complexidade em comparação com o escalonamento composto simples de seu predecessor."
+                    "Tempos de treino e renderização extremamente lentos no modelo original, muitas vezes levando horas ou dias para treinar por cena.",
+                    "Exige um grande número de imagens de entrada com poses de câmera conhecidas com precisão para evitar artefatos.",
+                    "A representação da cena aprendida não é facilmente editável ou combinável, e a iluminação fica 'embutida'."
                   ],
                   "recommended_for": [
-                    "Tarefas de classificação de imagens onde alta precisão e tempos rápidos de treinamento/inferência são críticos.",
-                    "Aplicações em dispositivos com recursos limitados, devido à sua alta eficiência de parâmetros e tamanhos de modelo menores."
+                    "Síntese de vistas inéditas de alta qualidade para cenas estáticas.",
+                    "Reconstrução de cenas 3D a partir de uma coleção de imagens 2D para aplicações em VR/AR e criação de conteúdo."
                   ],
                   "not_recommended_for": [
-                    "Tarefas onde a interpretabilidade do modelo é uma preocupação principal, pois a arquitetura é complexa e descoberta por meio de busca automatizada.",
-                    "Cenários que exigem ajuste mínimo de hiperparâmetros, devido à complexidade adicional do cronograma de aprendizado progressivo."
+                    "Aplicações de renderização em tempo real (sem modificações significativas ou variantes mais novas como o Instant-NGP).",
+                    "Cenas com elementos dinâmicos, iluminação variável, ou cujo objetivo principal seja a extração precisa e editável de mesh."
                   ],
-                  "curiosity": "O modelo foi desenvolvido pelos autores da Google Research Mingxing Tan e Quoc V. Le, os mesmos pesquisadores por trás do EfficientNet original, usando uma busca de arquitetura neural que avaliou quase 1.000 arquiteturas de modelo para encontrar um equilíbrio ideal entre precisão, tamanho de parâmetro e tempo de treinamento.",
+                  "curiosity": "O artigo original do NeRF, do ECCV 2020, coautorado por Ben Mildenhall e outros, recebeu uma Best Paper Honorable Mention e desencadeou uma onda de pesquisa em neural rendering.",
                   "keywords": [
                     "nerf",
                     "neural radiance fields",
