@@ -34,7 +34,13 @@ function layoutSaver() {
   }
 }
 
+// id único por build, usado para invalidar o cache dos JSONs de dados a cada deploy
+const BUILD_ID = String(Date.now())
+
 export default defineConfig({
   plugins: [react(), layoutSaver()],
   publicDir: 'data',
+  define: {
+    __BUILD_ID__: JSON.stringify(BUILD_ID),
+  },
 })

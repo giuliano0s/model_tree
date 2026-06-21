@@ -11407,6 +11407,90 @@
                 "image masking",
                 "deep learning images"
               ]
+            },
+            {
+              "id": "l319",
+              "name": "ConvNeXt V2",
+              "year": 2023,
+              "diff_siblings": "Unlike its predecessor ConvNeXt V1 and other modern CNNs, ConvNeXt V2 is co-designed with a self-supervised learning strategy, incorporating a Global Response Normalization (GRN) layer to prevent feature collapse when pre-training with a fully convolutional masked autoencoder (FCMAE).",
+              "strengths": [
+                "Achieves state-of-the-art performance for pure convolutional networks on major benchmarks, rivaling or exceeding vision transformers.",
+                "Scales effectively across a wide range of model sizes, from the small 'Atto' to the 'Huge' 650M+ parameter model.",
+                "Co-designed for self-supervised learning, enabling strong performance even with only publicly available training data."
+              ],
+              "weaknesses": [
+                "Performance gains are a result of both architectural changes (GRN) and a specific self-supervised pre-training method (FCMAE); simply applying one without the other yields subpar results.",
+                "Like other large-scale models, the larger variants have a significant computational footprint, which can be a barrier to deployment on resource-constrained hardware.",
+                "The architectural improvements are specifically tailored to overcome issues (feature collapse) that arise during masked autoencoder pre-training, which may be less impactful in purely supervised learning settings."
+              ],
+              "recommended_for": [
+                "Image classification, object detection, and semantic segmentation, where it has demonstrated state-of-the-art or competitive performance.",
+                "Scenarios where leveraging large unlabeled datasets through self-supervised pre-training is desirable."
+              ],
+              "not_recommended_for": [
+                "Simple vision tasks where smaller, less complex models would be more efficient.",
+                "Environments with extremely limited computational resources where even the smaller 'Atto' model may be too demanding."
+              ],
+              "curiosity": "The model's key architectural innovation, the Global Response Normalization (GRN) layer, was specifically developed to solve the 'feature collapse' problem observed when applying masked autoencoder pre-training to the original ConvNeXt architecture.",
+              "keywords": [
+                "convnext v2",
+                "convolutional neural network",
+                "cnn",
+                "image classification",
+                "object detection",
+                "semantic segmentation",
+                "self-supervised learning",
+                "masked autoencoder",
+                "global response normalization",
+                "computer vision",
+                "image recognition",
+                "convnet",
+                "feature collapse",
+                "fcmae"
+              ],
+              "children": []
+            },
+            {
+              "id": "l321",
+              "name": "EfficientNetV2",
+              "year": 2021,
+              "diff_siblings": "It improves upon other CNNs by using a training-aware neural architecture search (NAS) and a novel progressive learning technique that adaptively adjusts regularization with image size, leading to faster training and higher parameter efficiency.",
+              "strengths": [
+                "Achieves state-of-the-art performance with significantly fewer parameters and faster training times compared to other models like Vision Transformers and its predecessor, EfficientNetV1.",
+                "Employs Fused-MBConv blocks in early layers, which better utilize modern hardware accelerators compared to the standard MBConv blocks used in EfficientNetV1.",
+                "Uses a progressive learning strategy, starting with small images and weak regularization and gradually increasing both, which accelerates training and improves final accuracy."
+              ],
+              "weaknesses": [
+                "The progressive learning technique adds complexity to the training process, requiring careful tuning of image size and regularization schedules.",
+                "While efficient, depthwise convolutions in MBConv blocks can be a bottleneck on some hardware accelerators compared to standard convolutions.",
+                "The performance gains are a result of a complex interplay of architecture search, scaling, and training methods, making it difficult to replicate or modify without extensive computational resources."
+              ],
+              "recommended_for": [
+                "Image classification tasks where high accuracy, fast training, and parameter efficiency are all critical.",
+                "Use as a high-performance backbone for transfer learning in other computer vision tasks like object detection and semantic segmentation."
+              ],
+              "not_recommended_for": [
+                "Applications on extremely resource-constrained devices where even its smaller variants might be too demanding compared to models like MobileNet.",
+                "Tasks where the primary concern is model interpretability, due to its complex, search-generated architecture."
+              ],
+              "curiosity": "Developed by Google Research authors Mingxing Tan and Quoc V. Le, the model was found using a neural architecture search that jointly optimized for accuracy, training speed, and parameter efficiency.",
+              "keywords": [
+                "efficientnetv2",
+                "image classification",
+                "computer vision",
+                "convolutional neural network",
+                "cnn",
+                "deep learning",
+                "parameter efficiency",
+                "training speed",
+                "neural architecture search",
+                "nas",
+                "compound scaling",
+                "transfer learning",
+                "fused-mbconv",
+                "progressive learning"
+              ],
+              "children": []
             }
           ],
           "keywords": [
@@ -12470,6 +12554,88 @@
                     "locate objects in image",
                     "facebook detr"
                   ]
+                },
+                {
+                  "id": "l320",
+                  "name": "DINOv2",
+                  "year": 2023,
+                  "diff_siblings": "It is distinguished from other Vision Transformers by its self-supervised pre-training on a massive curated dataset, which produces general-purpose visual features that excel at downstream tasks with minimal or no fine-tuning.",
+                  "strengths": [
+                    "Produces powerful, general-purpose visual features applicable to many downstream tasks like classification, segmentation, and depth estimation.",
+                    "Achieves state-of-the-art performance with simple linear classifiers, often outperforming supervised models.",
+                    "Reduces the need for large labeled datasets and expensive fine-tuning for new tasks."
+                  ],
+                  "weaknesses": [
+                    "Extremely high computational cost and data requirements for the initial pre-training phase.",
+                    "The large, uncurated pre-training dataset may encode societal biases into the learned features.",
+                    "Performance can be lower on out-of-domain data (e.g., medical images) without further domain-adapted pre-training."
+                  ],
+                  "recommended_for": [
+                    "Feature extraction for a wide range of computer vision tasks, especially with limited labeled data.",
+                    "Establishing strong performance baselines for tasks like image classification, semantic segmentation, and depth estimation."
+                  ],
+                  "not_recommended_for": [
+                    "Training from scratch in resource-constrained environments.",
+                    "Real-time inference on low-power devices, although smaller distilled versions exist."
+                  ],
+                  "curiosity": "Without any explicit 3D supervision, its learned features enabled it to achieve state-of-the-art results on monocular depth estimation benchmarks.",
+                  "keywords": [
+                    "self-supervised learning",
+                    "vision transformer",
+                    "vit",
+                    "representation learning",
+                    "feature extraction",
+                    "computer vision",
+                    "foundation model",
+                    "image classification",
+                    "semantic segmentation",
+                    "depth estimation",
+                    "image retrieval",
+                    "meta ai",
+                    "dinov2"
+                  ],
+                  "children": []
+                },
+                {
+                  "id": "l322",
+                  "name": "MaxViT",
+                  "year": 2022,
+                  "diff_siblings": "It is a hybrid architecture that serially combines convolutional blocks (MBConv) with a novel multi-axis attention mechanism, which decomposes attention into sparse local (blocked) and global (dilated/gridded) forms to achieve linear complexity and a global receptive field at every stage of the network.",
+                  "strengths": [
+                    "Achieves linear computational complexity with respect to image size, making it scalable to high-resolution inputs.",
+                    "Combines the local feature extraction strengths of CNNs with the global context modeling of Transformers at every hierarchical level.",
+                    "Demonstrates state-of-the-art performance on a wide range of vision tasks, including classification, object detection, and segmentation."
+                  ],
+                  "weaknesses": [
+                    "The multi-axis attention blocks can be computationally intensive compared to pure CNNs, especially for larger model variants.",
+                    "Its performance can be sensitive to the specific arrangement and hyperparameters of the convolutional and attention blocks.",
+                    "Like other Transformers, it generally requires large datasets for pre-training to achieve its peak performance and generalization."
+                  ],
+                  "recommended_for": [
+                    "High-resolution computer vision tasks like object detection, instance segmentation, and medical image analysis.",
+                    "Use as a powerful and scalable backbone for a broad spectrum of visual recognition and generation tasks."
+                  ],
+                  "not_recommended_for": [
+                    "Low-resource settings where training data and computational budgets are highly constrained.",
+                    "Tasks where pure translational equivariance, a strong inductive bias of CNNs, is critical and not complemented by attention."
+                  ],
+                  "curiosity": "The core Multi-Axis attention module was designed to be so universal that its blocks can be stacked hierarchically, similar to a classic ResNet, allowing it to 'see' globally even in the earliest, high-resolution stages of the network (Tu et al., 2022).",
+                  "keywords": [
+                    "vision transformer",
+                    "hybrid cnn-transformer",
+                    "multi-axis attention",
+                    "computer vision",
+                    "image classification",
+                    "object detection",
+                    "semantic segmentation",
+                    "scalable attention",
+                    "linear complexity",
+                    "global receptive field",
+                    "local attention",
+                    "max-sa",
+                    "hierarchical vision model"
+                  ],
+                  "children": []
                 }
               ],
               "keywords": [
@@ -12759,6 +12925,91 @@
                     "text conditioned image generation",
                     "prompt based image creation"
                   ]
+                },
+                {
+                  "id": "l324",
+                  "name": "Segment Anything Model (SAM)",
+                  "year": 2023,
+                  "diff_siblings": "Unlike multimodal transformers focused on classification or retrieval (e.g., CLIP), SAM is a specialized generative architecture that outputs segmentation masks based on spatial or, in later versions, text-based prompts.",
+                  "strengths": [
+                    "Excellent zero-shot generalization to unseen objects and image domains without task-specific training.",
+                    "Highly flexible 'promptable' interface, accepting points, boxes, and text to guide segmentation.",
+                    "Produces high-quality, detailed object masks."
+                  ],
+                  "weaknesses": [
+                    "Does not assign semantic labels to masks, identifying 'what' but not 'what kind'.",
+                    "Performance can degrade on specialized domains (e.g., medical, aerial) and with low-contrast objects.",
+                    "The Vision Transformer encoder is computationally expensive, making real-time application on edge devices challenging."
+                  ],
+                  "recommended_for": [
+                    "Accelerating data annotation and labeling for computer vision datasets.",
+                    "Interactive image editing tools for object selection, removal, and manipulation."
+                  ],
+                  "not_recommended_for": [
+                    "Tasks requiring real-time video segmentation on resource-constrained hardware.",
+                    "Applications that need semantic class predictions out-of-the-box (e.g., 'car', 'person')."
+                  ],
+                  "curiosity": "The model was trained on the SA-1B dataset, which contains over 1.1 billion segmentation masks across 11 million images, and was created using a human-in-the-loop process where the model itself helped assist annotators.",
+                  "keywords": [
+                    "segment anything model",
+                    "sam",
+                    "image segmentation",
+                    "video segmentation",
+                    "computer vision",
+                    "foundation model",
+                    "zero-shot segmentation",
+                    "promptable segmentation",
+                    "object detection",
+                    "mask generation",
+                    "interactive segmentation",
+                    "vision transformer",
+                    "meta ai",
+                    "data annotation",
+                    "generative model"
+                  ],
+                  "children": []
+                },
+                {
+                  "id": "l325",
+                  "name": "Whisper",
+                  "year": 2022,
+                  "diff_siblings": "It is a weakly-supervised encoder-decoder Transformer specialized for robust, multilingual, and multitask speech-to-text processing, trained on a massive and diverse dataset of 680,000 hours of web-collected audio.",
+                  "strengths": [
+                    "High accuracy and robustness to accents, background noise, and technical language.",
+                    "Performs multilingual transcription (99 languages) and translation into English within a single model.",
+                    "Zero-shot generalization to diverse datasets and domains without task-specific fine-tuning."
+                  ],
+                  "weaknesses": [
+                    "Can 'hallucinate' text, especially during silent periods or with non-speech audio.",
+                    "Does not perform speaker diarization (identifying 'who spoke when') natively.",
+                    "Performance is lower for low-resource languages that were underrepresented in the training data."
+                  ],
+                  "recommended_for": [
+                    "General-purpose automatic speech recognition (ASR) and transcription.",
+                    "Translating speech from multiple languages directly into English text."
+                  ],
+                  "not_recommended_for": [
+                    "Low-latency, real-time streaming applications without specialized adaptations.",
+                    "Natively identifying or separating different speakers in a single audio file."
+                  ],
+                  "curiosity": "The model was trained on 680,000 hours of 'weakly supervised' audio data collected from the web, a scale and diversity that enabled its robust zero-shot performance.",
+                  "keywords": [
+                    "automatic speech recognition",
+                    "asr",
+                    "speech-to-text",
+                    "audio transcription",
+                    "speech translation",
+                    "multilingual asr",
+                    "multitask learning",
+                    "transformer",
+                    "encoder-decoder",
+                    "openai",
+                    "audio processing",
+                    "robust speech recognition",
+                    "large-scale weak supervision",
+                    "sequence-to-sequence"
+                  ],
+                  "children": []
                 }
               ],
               "keywords": [
@@ -13230,6 +13481,47 @@
                 "sensor data prediction",
                 "sales prediction"
               ]
+            },
+            {
+              "id": "l323",
+              "name": "TabPFN",
+              "year": 2022,
+              "diff_siblings": "It is a Transformer-based model specifically designed for small tabular classification, whereas its siblings focus on modalities like natural language, computer vision, or time series. It operates without requiring hyperparameter tuning by performing in-context learning on the provided training data in a single forward pass.",
+              "strengths": [
+                "Extremely fast inference, often producing predictions in under a second on small datasets.",
+                "Requires no hyperparameter tuning, simplifying the modeling pipeline.",
+                "Achieves state-of-the-art performance on small tabular classification tasks (typically <= 1000 samples), often outperforming tuned tree-based models."
+              ],
+              "weaknesses": [
+                "The original version is limited to small datasets (e.g., <= 1000 rows, <= 100 features, <= 10 classes).",
+                "Primarily designed for classification; not applicable for regression tasks in its initial version.",
+                "Performance can degrade on datasets with high dimensionality or many categorical features."
+              ],
+              "recommended_for": [
+                "Rapid prototyping and establishing strong baselines for small tabular classification problems.",
+                "AutoML pipelines where inference speed and zero-tuning are critical for small-scale data."
+              ],
+              "not_recommended_for": [
+                "Large-scale datasets that exceed the model's context window (e.g., >10,000 samples).",
+                "High-dimensional datasets, as performance can be worse than simpler models."
+              ],
+              "curiosity": "TabPFN is a Prior-Data Fitted Network (PFN) pre-trained on millions of synthetic datasets generated from structural causal models, allowing it to approximate Bayesian inference on a new dataset in a single forward pass.",
+              "keywords": [
+                "tabular classification",
+                "transformer",
+                "automl",
+                "small data",
+                "in-context learning",
+                "bayesian inference",
+                "prior-fitted network",
+                "fast machine learning",
+                "no hyperparameter tuning",
+                "classification model",
+                "deep learning for tables",
+                "tabular foundation model",
+                "zero-shot tabular"
+              ],
+              "children": []
             }
           ],
           "keywords": [
@@ -14152,6 +14444,132 @@
                 "single-step sampler",
                 "image synthesis",
                 "real-time image generation"
+              ]
+            },
+            {
+              "id": "ai-neural-rendering-v",
+              "name": "Neural Rendering / View Synthesis",
+              "year": null,
+              "diff_siblings": "Unlike GANs, VAEs, and Diffusion, which sample new instances from a learned data distribution, this family reconstructs a specific 3D scene from a set of posed 2D images and renders photorealistic novel viewpoints of it via differentiable volumetric or splatting-based rendering.",
+              "strengths": [
+                "Photorealistic novel-view synthesis with view-dependent effects (specular highlights, reflections) from only sparse posed images",
+                "Encodes geometry and appearance as a continuous, compact 3D representation, often beating photogrammetry on thin structures and low-texture surfaces",
+                "Real-time rendering once fitted (3D Gaussian Splatting reaches 1080p at over 100 fps)"
+              ],
+              "weaknesses": [
+                "Per-scene optimization with no inherent generalization: each new scene must be fit from scratch",
+                "Heavy compute and memory cost (NeRF training takes hours to days; Gaussian splats need roughly 500 MB to 1.5 GB per scene)",
+                "Struggles with dynamic, deformable, or large unbounded scenes and is prone to aliasing and floater artifacts"
+              ],
+              "recommended_for": [
+                "Free-viewpoint VR/AR capture and digital twins of real environments from casual photo or video sets",
+                "High-fidelity 3D reconstruction for cultural heritage, product visualization, and robotics/SLAM scene mapping"
+              ],
+              "not_recommended_for": [
+                "Generating novel, never-seen objects or scenes from a prompt or noise (use Diffusion or GANs instead)",
+                "Real-time reconstruction of fast dynamic scenes or single-image-to-3D under tight latency and storage budgets"
+              ],
+              "curiosity": "NeRF was introduced by Mildenhall et al. (2020); 3D Gaussian Splatting by Kerbl et al. (2023) replaced the slow MLP ray-marching with rasterized anisotropic 3D Gaussians, won Best Paper at SIGGRAPH 2023, and enabled real-time radiance-field rendering.",
+              "children": [
+                {
+                  "id": "l326",
+                  "name": "3D Gaussian Splatting",
+                  "year": 2023,
+                  "diff_siblings": "Unlike implicit neural representations like NeRF which use a coordinate-based MLP to represent the scene, 3D Gaussian Splatting uses an explicit set of millions of 3D Gaussians that are directly rasterized, enabling much faster training and real-time rendering.",
+                  "strengths": [
+                    "Enables high-quality, photorealistic novel view synthesis at real-time frame rates (often over 100 FPS).",
+                    "Training times are significantly faster than most Neural Radiance Field (NeRF) variants.",
+                    "The explicit point-based representation excels at capturing fine details and complex, thin structures."
+                  ],
+                  "weaknesses": [
+                    "Scene representation requires a large memory and storage footprint, often hundreds of megabytes or more.",
+                    "Editing the scene by manipulating or removing objects is non-trivial due to the unstructured nature of the millions of Gaussians.",
+                    "The explicit representation lacks a well-defined surface, making it difficult to use for geometric analysis or tasks requiring a mesh."
+                  ],
+                  "recommended_for": [
+                    "Creating digital twins and photorealistic fly-throughs of static scenes for VR/AR and virtual production.",
+                    "Rapid 3D capture and visualization of objects and environments where rendering speed is critical."
+                  ],
+                  "not_recommended_for": [
+                    "Applications with strict memory or storage limitations due to large file sizes.",
+                    "Projects requiring precise geometric measurements, editing, or analysis typically performed on 3D meshes."
+                  ],
+                  "curiosity": "The technique's real-time performance is achieved through a custom differentiable rasterizer that projects and sorts the 3D Gaussians onto the 2D image plane for efficient rendering and gradient backpropagation.",
+                  "keywords": [
+                    "3d gaussian splatting",
+                    "novel view synthesis",
+                    "3d reconstruction",
+                    "radiance fields",
+                    "real-time rendering",
+                    "computer vision",
+                    "point-based rendering",
+                    "scene representation",
+                    "photogrammetry",
+                    "nerf alternative",
+                    "3dgs",
+                    "image-based rendering",
+                    "differentiable rendering",
+                    "volumetric rendering"
+                  ],
+                  "children": []
+                },
+                {
+                  "id": "l327",
+                  "name": "NeRF (Neural Radiance Fields)",
+                  "year": 2020,
+                  "diff_siblings": "Unlike methods that produce explicit 3D representations like meshes or point clouds, NeRF uses a deep neural network to learn an implicit, continuous volumetric representation of a scene, encoding both geometry and view-dependent appearance.",
+                  "strengths": [
+                    "Renders photorealistic, high-resolution novel views with complex geometry and view-dependent effects like reflections and translucency.",
+                    "Represents scenes in a continuous, compact format (a few megabytes for the network weights) without explicit 3D geometry.",
+                    "Can handle complex, non-Lambertian surfaces and fine details that are challenging for traditional photogrammetry."
+                  ],
+                  "weaknesses": [
+                    "Extremely slow training and rendering times for the original model, often taking hours or days to train per scene.",
+                    "Requires a large number of input images with accurately known camera poses to avoid artifacts.",
+                    "The learned scene representation is not easily editable or composable, and lighting is 'baked in'."
+                  ],
+                  "recommended_for": [
+                    "High-quality novel view synthesis for static scenes.",
+                    "3D scene reconstruction from a collection of 2D images for applications in VR/AR and content creation."
+                  ],
+                  "not_recommended_for": [
+                    "Real-time rendering applications (without significant modifications or newer variants like Instant-NGP).",
+                    "Scenes with dynamic elements, changing lighting, or for which precise, editable mesh extraction is the primary goal."
+                  ],
+                  "curiosity": "The original NeRF paper from ECCV 2020, co-authored by Ben Mildenhall and others, received a Best Paper Honorable Mention and sparked a wave of research in neural rendering.",
+                  "keywords": [
+                    "nerf",
+                    "neural radiance fields",
+                    "view synthesis",
+                    "3d reconstruction",
+                    "neural rendering",
+                    "volumetric rendering",
+                    "implicit representation",
+                    "computer vision",
+                    "deep learning",
+                    "image-based rendering",
+                    "photogrammetry",
+                    "static scene",
+                    "novel view generation"
+                  ],
+                  "children": []
+                }
+              ],
+              "keywords": [
+                "novel view synthesis",
+                "neural radiance field",
+                "nerf",
+                "3d gaussian splatting",
+                "view synthesis",
+                "3d reconstruction",
+                "differentiable rendering",
+                "volumetric rendering",
+                "radiance field",
+                "free-viewpoint video",
+                "inverse rendering",
+                "photogrammetry alternative",
+                "scene reconstruction",
+                "neural rendering"
               ]
             }
           ],

@@ -21,7 +21,7 @@ Model Tree turns a sprawling map of predictive modeling — from Linear Regressi
 
 On top of that curated knowledge, an **AI tutor** answers *"which model should I use for X?"* conversationally, adapting to your level, grounded only in the taxonomy and honest about limitations.
 
-- **392 nodes** · 316 leaf models · 76 categories
+- **402 nodes** · 325 leaf models · 77 categories
 - **3 main branches:** `1. Machine Learning` · `2. AI / Deep Learning` · `3. Classical Statistics`
 - Fully **data-driven**: the whole visualization is computed from a single JSON. Add or rename a node and the tree, colors, sizing and layout adapt automatically.
 
@@ -170,7 +170,7 @@ python -m venv .venv
 
 A few things worth knowing:
 
-- It's **multi-task aware**: pass `"XGBoost"` and it splits into *XGBoost Classification* and *XGBoost Regression*, placing each where it belongs. It also creates an intermediate category when the right group doesn't exist yet.
+- **One name, one node**: each name you pass becomes a single leaf, placed under the deepest existing category that fits. Task variants of the same model (e.g. *XGBoost Classification* vs *XGBoost Regression*) and brand-new categories are added deliberately by hand, not invented by the script.
 - It needs a **Gemini key** (`GEMINI_ENRICH_API_KEY`, or `GEMINI_API_KEY` as fallback) for the web-grounded generation. That's the only key a contributor needs.
 - It **stops before touching the vector database.** Re-indexing requires a write token that only the maintainer holds, so the script generates and translates everything locally, then asks you to open a PR. The maintainer re-indexes on merge — you never need Upstash access.
 

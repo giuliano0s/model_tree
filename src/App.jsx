@@ -11,6 +11,9 @@ import { tarotNode, TAROT_ID } from './data/tarot.js'
 import styles from './App.module.css'
 
 const LS_KEY = 'modeltree.layout'
+const LS_VERSION_KEY = 'modeltree.layoutVersion'
+// id do build (injetado pelo Vite); sufixo ?v= nos fetch de dados quebra o cache a cada deploy
+const BUILD_ID = typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : 'dev'
 
 const mapToObj = (m) => Object.fromEntries(m)
 const objToMap = (o) => new Map(Object.entries(o ?? {}))
@@ -87,8 +90,9 @@ export default function App() {
   // então continuam válidos.
   useEffect(() => {
     let cancelled = false
-    // tenta o arquivo do idioma e cai no master PT (models_tree.pt.json)
-    const candidates = [...new Set([`/models_tree.${lang}.json`, '/models_tree.pt.json'])]
+    // tenta o arquivo do idioma e cai no master PT (models_tree.pt.json).
+    // ?v=BUILD_ID invalida o cache do navegador a cada deploy (dados sempre frescos)
+    const candidates = [...new Set([`/models_tree.${lang}.json?v=${BUILD_ID}`, `/models_tree.pt.json?v=${BUILD_ID}`])]
 
     async function load() {
       setLoading(true)
@@ -114,12 +118,18 @@ export default function App() {
   // Carrega layout: aplica o do usuário (localStorage) se existir; sempre guarda
   // o padrão do repo (layout.json) para o Hard reset.
   useEffect(() => {
+    // descarta o rascunho do usuário se for de um build anterior: dados novos do deploy
+    // não casariam com posições antigas (nós novos sobrepostos, ids removidos órfãos).
+    if (localStorage.getItem(LS_VERSION_KEY) !== BUILD_ID) {
+      localStorage.removeItem(LS_KEY)
+      localStorage.setItem(LS_VERSION_KEY, BUILD_ID)
+    }
     const wip = localStorage.getItem(LS_KEY)
     let appliedFromUser = false
     if (wip) {
       try { applyMaps(toLayoutMaps(JSON.parse(wip))); appliedFromUser = true } catch { /* ignore */ }
     }
-    fetch('/layout.json')
+    fetch(`/layout.json?v=${BUILD_ID}`)
       .then(r => (r.ok ? r.json() : null))
       .then(obj => {
         repoDefault.current = toLayoutMaps(obj)
@@ -129,11 +139,14 @@ export default function App() {
       .finally(() => { offsetsReady.current = true })
   }, [])
 
-  // Autosave do rascunho enquanto arruma
+  // Autosave do rascunho enquanto arruma (carimba o build atual junto)
   useEffect(() => {
     if (!offsetsReady.current) return
     if (offsets.size === 0 && linkOffsets.size === 0) localStorage.removeItem(LS_KEY)
-    else localStorage.setItem(LS_KEY, serialize())
+    else {
+      localStorage.setItem(LS_KEY, serialize())
+      localStorage.setItem(LS_VERSION_KEY, BUILD_ID)
+    }
   }, [offsets, linkOffsets])
 
   const handleDrag = useCallback((id, ddx, ddy) => {
