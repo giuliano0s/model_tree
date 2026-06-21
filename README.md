@@ -155,6 +155,31 @@ The tool `buscar_modelo(situacao, top_k)` returns the closest models for a descr
 
 ---
 
+## 🌱 Contribute a model
+
+Spotted a model that's missing? The enrichment pipeline does the heavy lifting — you give it a name, it researches the model on the web, writes a curated entry (difference from siblings, strengths, weaknesses, when to use it, a historical note, plus hidden search keywords), places it at the right spot in the tree, and translates it into every existing language.
+
+```bash
+python -m venv .venv
+.venv/Scripts/python -m pip install -r scripts/requirements.txt   # Windows
+# (macOS/Linux: .venv/bin/python -m pip install -r scripts/requirements.txt)
+
+# add a Gemini key to a .env file (see .env.example), then:
+.venv/Scripts/python scripts/enrich_tree.py "TabPFN" "Mamba"
+```
+
+A few things worth knowing:
+
+- It's **multi-task aware**: pass `"XGBoost"` and it splits into *XGBoost Classification* and *XGBoost Regression*, placing each where it belongs. It also creates an intermediate category when the right group doesn't exist yet.
+- It needs a **Gemini key** (`GEMINI_ENRICH_API_KEY`, or `GEMINI_API_KEY` as fallback) for the web-grounded generation. That's the only key a contributor needs.
+- It **stops before touching the vector database.** Re-indexing requires a write token that only the maintainer holds, so the script generates and translates everything locally, then asks you to open a PR. The maintainer re-indexes on merge — you never need Upstash access.
+
+Then commit the changed files under `data/` and open a Pull Request. That's it.
+
+> The generated entry is a strong draft, but a quick human check on the facts (year, claims) before submitting is always welcome.
+
+---
+
 ## 🌍 Contribute a translation
 
 Anyone can add a language and open a Pull Request — the app picks it up automatically.
@@ -207,7 +232,7 @@ model-tree-mcp/           # distributable MCP package (HTTP client, no secrets)
 
 - **Publish the MCP to PyPI** so `uvx model-tree-mcp` works out of the box.
 - **More languages** (the pipeline is ready — contributions welcome).
-- **Grow the taxonomy** via the enrichment pipeline (`scripts/enrich_tree.py`): give it model names and it researches each on the web, recognizes multi-task models and splits them into per-task variants (e.g. *XGBoost* → classification + regression), places each at the deepest fitting branch (creating an intermediate category when the right sibling group is missing), then translates and reindexes.
+- **Grow the taxonomy** as new models appear, with help from the community via the enrichment pipeline (see [Contribute a model](#-contribute-a-model)).
 
 ---
 

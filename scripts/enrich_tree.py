@@ -4,14 +4,17 @@ Pipeline de enriquecimento da taxonomia.
 Recebe nomes de modelos e, para cada um, primeiro decide se é um modelo multi-tarefa:
 um nome como "XGBoost" é expandido em variantes por tarefa ("XGBoost Classification",
 "XGBoost Regression"); um nome single-task segue sozinho. Cada variante então é gerada
-(conteúdo + posição na árvore) via Gemini com pesquisa na web e inserida no nó mais
-profundo que de fato a comporta, criando uma categoria intermediária quando o grupo de
-irmãos ideal ainda não existe mas há um simétrico num ramo paralelo. Insere em
-models_tree.en.json com id novo, traduz cada idioma a partir do EN (via translate_tree.py)
-e reindexa a base.
+(conteúdo + keywords de busca + posição na árvore) via Gemini com pesquisa na web e
+inserida no nó mais profundo que de fato a comporta, criando uma categoria intermediária
+quando o grupo de irmãos ideal ainda não existe mas há um simétrico num ramo paralelo.
+Insere em models_tree.en.json com id novo e traduz cada idioma a partir do EN.
+
+A base vetorial só é reindexada se houver o token de ESCRITA do Upstash no ambiente
+(mantenedor). Quem contribui sem esse token gera os dados localmente e abre um Pull
+Request; o mantenedor reindexa ao aceitar.
 
 Geração: Gemini 2.5 Pro + Google Search (precisa de billing; Flash via GEMINI_ENRICH_MODEL).
-Tradução: translate_tree.py (en -> idioma, com cache).
+Tradução: translate_tree.py (en -> idioma, com cache; só traduz o que mudou).
 
 Uso:
     python scripts/enrich_tree.py "XGBoost" "N-HiTS" "ControlNet"
@@ -148,13 +151,16 @@ GEN_SYSTEM = (
     "5. Fields: name (display name), year (integer of first publication, verified), diff_siblings "
     "(1 sentence on how it differs from siblings under the chosen parent), strengths (3 short "
     "items), weaknesses (3 short items), recommended_for (2 short items), not_recommended_for "
-    "(2 short items), curiosity (1 verifiable sentence, with author/year).\n"
+    "(2 short items), curiosity (1 verifiable sentence, with author/year), keywords (8-15 "
+    "lowercase English search terms, NOT shown to users, used by a vector + keyword index so "
+    "task-phrased queries find this model: the tasks it performs, its technique/family, the data "
+    "type, and common query phrasings/synonyms).\n"
     "6. 'parent_id' must be an id from the list. To request a new intermediate category, also set "
     "'new_parent' to {\"under\": \"<existing parent_id>\", \"name\": \"<category name>\"}; otherwise "
     "set 'new_parent' to null.\n"
     '7. Return ONLY the JSON object: {"parent_id": "...", "new_parent": null, "name": "...", '
     '"year": 0, "diff_siblings": "...", "strengths": [], "weaknesses": [], "recommended_for": [], '
-    '"not_recommended_for": [], "curiosity": "..."}. No markdown fences, no extra text.'
+    '"not_recommended_for": [], "curiosity": "...", "keywords": []}. No markdown fences, no extra text.'
 )
 
 # decide se um nome cru representa um único modelo ou um modelo multi-tarefa que merece
@@ -233,6 +239,7 @@ def build_node(node_id, gen):
         "recommended_for": gen.get("recommended_for", []),
         "not_recommended_for": gen.get("not_recommended_for", []),
         "curiosity": gen.get("curiosity", ""),
+        "keywords": gen.get("keywords", []),
         "children": [],
     }
 
@@ -330,10 +337,17 @@ def main():
         print(f"traduzindo en -> {lang}...")
         subprocess.run([sys.executable, str(ROOT / "scripts" / "translate_tree.py"), lang], check=True)
 
-    # reindexa a base
-    print("reindexando...")
-    subprocess.run([sys.executable, str(ROOT / "scripts" / "index_tree.py")], check=True)
-    print(f"OK: {len(novos)} modelos adicionados, traduzidos e indexados")
+    # reindexa a base SÓ se houver o token de escrita do Upstash (mantenedor). Contribuidor
+    # sem o token para aqui e abre PR; o reingest é feito pelo mantenedor ao aceitar.
+    if os.getenv("UPSTASH_VECTOR_REST_TOKEN"):
+        print("reindexando...")
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "index_tree.py")], check=True)
+        print(f"OK: {len(novos)} modelos adicionados, traduzidos e indexados")
+    else:
+        print(f"\nOK: {len(novos)} modelo(s) adicionado(s) e traduzido(s) localmente.")
+        print("Sem UPSTASH_VECTOR_REST_TOKEN (escrita) — a base vetorial NÃO foi reindexada.")
+        print("Para contribuir: faça commit das mudanças em data/ e abra um Pull Request.")
+        print("O mantenedor reindexa a base ao aceitar.")
 
 if __name__ == "__main__":
     main()
