@@ -31,9 +31,15 @@ SRC = ROOT / "data" / f"models_tree.{LANG}.json"
 BATCH_SIZE = 100
 
 # ---------------------------------------------------------------- chunk
-# reúne todos os campos descritivos do nó num único texto (vira o embedding)
+# reúne todos os campos descritivos do nó num único texto (vira o embedding).
+# as keywords de funcionalidade entram cedo e repetidas, reforçando o casamento
+# por TAREFA tanto no denso quanto no BM25 (não são exibidas na UI).
 def build_text(node):
     parts = [f"{node['name']} ({node.get('year', '')})".strip()]
+    if node.get("keywords"):
+        kw = "; ".join(node["keywords"])
+        parts.append(f"Tasks and use cases: {kw}")
+        parts.append(f"Keywords: {kw}")
     if node.get("diff_siblings"):
         parts.append(f"Difference: {node['diff_siblings']}")
     if node.get("strengths"):
@@ -69,6 +75,7 @@ def flatten(node, branch="", depth=0, out=None):
             "recommended_for": node.get("recommended_for", []),
             "not_recommended_for": node.get("not_recommended_for", []),
             "curiosity": node.get("curiosity", ""),
+            "keywords": node.get("keywords", []),
         },
     })
     for child in node.get("children", []):
