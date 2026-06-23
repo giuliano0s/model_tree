@@ -141,11 +141,16 @@ GEN_SYSTEM = (
     "(2 short items), curiosity (1 verifiable sentence, with author/year), keywords (8-15 "
     "lowercase English search terms, NOT shown to users, used by a vector + keyword index so "
     "task-phrased queries find this model: the tasks it performs, its technique/family, the data "
-    "type, and common query phrasings/synonyms).\n"
+    "type, and common query phrasings/synonyms), stat_fit (SPARSE statistical-fit object, NOT "
+    "shown to users, used to match a dataset to this model — include ONLY the keys relevant to "
+    "choosing it, omit the rest: target {types, distributions, notes}, data_regime {rows, "
+    "dimensionality, needs}, features {types, interpretability, notes}, assumptions [], loss "
+    "[objectives/loss it optimizes or supports], contraindicated_when []).\n"
     "6. 'parent_id' must be an id from the list.\n"
     '7. Return ONLY the JSON object: {"parent_id": "...", "name": "...", '
     '"year": 0, "diff_siblings": "...", "strengths": [], "weaknesses": [], "recommended_for": [], '
-    '"not_recommended_for": [], "curiosity": "...", "keywords": []}. No markdown fences, no extra text.'
+    '"not_recommended_for": [], "curiosity": "...", "keywords": [], "stat_fit": {}}. '
+    "No markdown fences, no extra text."
 )
 
 # gera o nó de um modelo (pesquisa na web) e decide o parent
@@ -185,6 +190,7 @@ def build_node(node_id, gen):
         "not_recommended_for": gen.get("not_recommended_for", []),
         "curiosity": gen.get("curiosity", ""),
         "keywords": gen.get("keywords", []),
+        "stat_fit": gen.get("stat_fit", {}),
         "children": [],
     }
 

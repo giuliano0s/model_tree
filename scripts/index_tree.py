@@ -30,6 +30,21 @@ LANG = sys.argv[1] if len(sys.argv) > 1 else "en"
 SRC = ROOT / "data" / f"models_tree.{LANG}.json"
 BATCH_SIZE = 100
 
+# achata o stat_fit (objeto esparso) num texto legível para o embedding/BM25
+def statfit_text(sf):
+    parts = []
+    for key, val in sf.items():
+        if isinstance(val, dict):
+            inner = "; ".join(
+                f"{k}: {', '.join(v) if isinstance(v, list) else v}" for k, v in val.items()
+            )
+            parts.append(f"{key} ({inner})")
+        elif isinstance(val, list):
+            parts.append(f"{key}: {', '.join(map(str, val))}")
+        else:
+            parts.append(f"{key}: {val}")
+    return "; ".join(parts)
+
 # ---------------------------------------------------------------- chunk
 # reúne todos os campos descritivos do nó num único texto (vira o embedding).
 # as keywords de funcionalidade entram cedo e repetidas, reforçando o casamento
@@ -40,6 +55,8 @@ def build_text(node):
         kw = "; ".join(node["keywords"])
         parts.append(f"Tasks and use cases: {kw}")
         parts.append(f"Keywords: {kw}")
+    if node.get("stat_fit"):
+        parts.append("Statistical fit: " + statfit_text(node["stat_fit"]))
     if node.get("diff_siblings"):
         parts.append(f"Difference: {node['diff_siblings']}")
     if node.get("strengths"):
@@ -76,6 +93,7 @@ def flatten(node, branch="", depth=0, out=None):
             "not_recommended_for": node.get("not_recommended_for", []),
             "curiosity": node.get("curiosity", ""),
             "keywords": node.get("keywords", []),
+            "stat_fit": node.get("stat_fit", {}),
         },
     })
     for child in node.get("children", []):

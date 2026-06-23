@@ -59,7 +59,9 @@ A collapsible mirror of the hierarchy. Click an item to **fly to the node** and 
 Interface **and** data are localized. Built-in: **English** (default) and **Portuguese**. The language picker auto-discovers available languages from a manifest, and anyone can contribute a new one (see below).
 
 ### 🔌 MCP server
-A distributable [MCP](https://modelcontextprotocol.io) package (`model-tree-mcp`) lets Claude and other agents query the taxonomy as a tool, returning the closest models for a described situation.
+A distributable [MCP](https://modelcontextprotocol.io) package (`model-tree-mcp`) brings the taxonomy into Claude Code and other agents, in two ways:
+- **`buscar_modelo` tool** — query the taxonomy for the closest models to a described situation; each result carries its full metadata, including a **statistical-fit profile** (target type and distribution, n/p regime, feature types, assumptions, supported loss, contraindications).
+- **`analisar_dataset` prompt** — point it at a dataset in your project and the agent investigates the problem (target, the loss/metric you optimize), runs a quick EDA (deep on the raw data, or shallow from your prior EDA), then recommends **3-4 models with trade-offs**, grounded in the dataset's statistics and your chosen loss. Raw data never leaves your machine; the package ships zero secrets.
 
 ---
 
@@ -151,7 +153,11 @@ Add the server to your MCP client (e.g. Claude Code / Claude Desktop):
 }
 ```
 
-The tool `buscar_modelo(situacao, top_k)` returns the closest models for a described situation. Point it at a different deployment with the `MODEL_TREE_API` env var. Source in [`model-tree-mcp/`](model-tree-mcp/).
+Then either:
+- call the **`buscar_modelo(situacao, top_k)`** tool directly for a quick taxonomy lookup, or
+- run the **`analisar_dataset`** prompt pointing at a dataset to get a model recommendation grounded in its statistics (the agent does the EDA locally; raw data stays on your machine).
+
+Point it at a different deployment with the `MODEL_TREE_API` env var. Source in [`model-tree-mcp/`](model-tree-mcp/).
 
 ---
 

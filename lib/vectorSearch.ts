@@ -20,6 +20,7 @@ export type Modelo = {
   notRecommendedFor?: string[];
   curiosity?: string;
   keywords?: string[];
+  statFit?: Record<string, unknown>;
 };
 
 // consulta o índice híbrido (denso + BM25) com texto cru e devolve o top-k
@@ -45,6 +46,7 @@ export async function searchModels(situacao: string, topK = 5): Promise<Modelo[]
       notRecommendedFor: m.not_recommended_for as string[] | undefined,
       curiosity: m.curiosity as string | undefined,
       keywords: m.keywords as string[] | undefined,
+      statFit: m.stat_fit as Record<string, unknown> | undefined,
     };
   });
 }
