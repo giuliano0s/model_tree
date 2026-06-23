@@ -12,8 +12,11 @@ import styles from './App.module.css'
 
 const LS_KEY = 'modeltree.layout'
 const LS_VERSION_KEY = 'modeltree.layoutVersion'
-// id do build (injetado pelo Vite); sufixo ?v= nos fetch de dados quebra o cache a cada deploy
+// BUILD_ID muda a cada build → sufixo ?v= nos fetch quebra o cache dos dados a cada deploy.
+// NODES_ID é o hash do conjunto de nós → só muda quando a estrutura muda; controla a
+// invalidação do layout salvo (deploys de código não descartam a organização do usuário).
 const BUILD_ID = typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : 'dev'
+const NODES_ID = typeof __NODES_ID__ !== 'undefined' ? __NODES_ID__ : 'dev'
 
 const mapToObj = (m) => Object.fromEntries(m)
 const objToMap = (o) => new Map(Object.entries(o ?? {}))
@@ -118,11 +121,12 @@ export default function App() {
   // Carrega layout: aplica o do usuário (localStorage) se existir; sempre guarda
   // o padrão do repo (layout.json) para o Hard reset.
   useEffect(() => {
-    // descarta o rascunho do usuário se for de um build anterior: dados novos do deploy
-    // não casariam com posições antigas (nós novos sobrepostos, ids removidos órfãos).
-    if (localStorage.getItem(LS_VERSION_KEY) !== BUILD_ID) {
+    // descarta o rascunho do usuário só quando o CONJUNTO de nós mudou: aí posições
+    // antigas não casam (nós novos sobrepostos, ids removidos órfãos). Deploys que só
+    // mexem em código mantêm o NODES_ID e preservam a organização do usuário.
+    if (localStorage.getItem(LS_VERSION_KEY) !== NODES_ID) {
       localStorage.removeItem(LS_KEY)
-      localStorage.setItem(LS_VERSION_KEY, BUILD_ID)
+      localStorage.setItem(LS_VERSION_KEY, NODES_ID)
     }
     const wip = localStorage.getItem(LS_KEY)
     let appliedFromUser = false
@@ -139,13 +143,13 @@ export default function App() {
       .finally(() => { offsetsReady.current = true })
   }, [])
 
-  // Autosave do rascunho enquanto arruma (carimba o build atual junto)
+  // Autosave do rascunho enquanto arruma (carimba a versão dos nós junto)
   useEffect(() => {
     if (!offsetsReady.current) return
     if (offsets.size === 0 && linkOffsets.size === 0) localStorage.removeItem(LS_KEY)
     else {
       localStorage.setItem(LS_KEY, serialize())
-      localStorage.setItem(LS_VERSION_KEY, BUILD_ID)
+      localStorage.setItem(LS_VERSION_KEY, NODES_ID)
     }
   }, [offsets, linkOffsets])
 
