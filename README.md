@@ -125,9 +125,13 @@ Each language is one file in `data/`: `models_tree.<lang>.json`. **`models_tree.
   "recommended_for": ["…"],
   "not_recommended_for": ["…"],
   "curiosity": "…",             // a historical or technical tidbit
+  "keywords": ["…"],            // EN-only search terms (tasks, technique, data type); not shown in the UI
+  "stat_fit": { /* … */ },      // EN-only statistical-fit profile (see below); not shown in the UI
   "children": [ /* same shape */ ]
 }
 ```
+
+The first fields (through `curiosity`) are shown in the detail panel. **`keywords`** and **`stat_fit`** are English-only metadata that power search and the MCP — they feed the vector index and ride along in results, but are never rendered in the UI and are not translated. `stat_fit` is a sparse object holding only what matters to pick that model: target type/distribution, data regime (n/p), feature types, assumptions, supported loss, and contraindications.
 
 `id`s are identical across languages, so a saved layout keeps working when you switch language.
 
@@ -175,7 +179,7 @@ Point it at a different deployment with the `MODEL_TREE_API` env var. Source in 
 
 ## 🌱 Contribute a model
 
-Spotted a model that's missing? The enrichment pipeline does the heavy lifting — you give it a name, it researches the model on the web, writes a curated entry (difference from siblings, strengths, weaknesses, when to use it, a historical note, plus hidden search keywords), places it at the right spot in the tree, and translates it into every existing language.
+Spotted a model that's missing? The enrichment pipeline does the heavy lifting — give it a name and it researches the model on the web, writes a curated entry (difference from siblings, strengths, weaknesses, when to use it, a historical note, plus hidden search **keywords** and a **statistical-fit profile**), places it under the best **existing** category, and translates it into every language. One name becomes one node.
 
 ```bash
 python -m venv .venv
@@ -236,12 +240,13 @@ api/                      # Vercel serverless functions: chat.ts, search.ts
 lib/                      # vectorSearch.ts (shared), ratelimit.ts
 data/                     # one JSON per language + languages.json + layout.json
 src/
-  components/             # Tree, DetailPanel, NavSidebar, SearchBar, Controls, Chat
+  components/             # Tree, DetailPanel, NavSidebar, SearchBar, Controls, Chat, About
   hooks/                  # useTreeLayout, useZoom, useSearch
   utils/                  # treeUtils, colorUtils, nodeSize
   i18n.jsx                # interface translation tables + language context
 scripts/                  # Python: index_tree, enrich_tree, translate_tree
-model-tree-mcp/           # distributable MCP package (HTTP client, no secrets)
+model-tree-mcp/           # distributable MCP package (published to PyPI)
+demo/                     # sample datasets + notebooks for trying the MCP
 ```
 
 ---
