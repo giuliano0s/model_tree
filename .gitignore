@@ -1,6 +1,9 @@
 # contexto interno do Claude Code (não publicar)
 CLAUDE.md
 
+# config local de MCP (caminho absoluto da máquina; não portável)
+.mcp.json
+
 # segredos
 .env
 .env.*
