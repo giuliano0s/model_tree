@@ -1,0 +1,22 @@
+{
+  "criteria": "Recent or niche predictive models in the structured-data domain (tabular, time-series, causal inference, survival) that frontier and mid-tier LLMs reliably underweight or fail to name cold, UNLIKE well-known recent models (XGBoost, LightGBM, CatBoost, BERT, CLIP, ViT) that any LLM surfaces readily. This curated set is exactly what the model-tree tool exists to surface: the overlooked-but-fitting model the user's own LLM would forget. Maintained by id; grow it as new models appear (this is the tool's durable value: staying ahead of the LLM's training cutoff). Famous vision/NLP/generative models and well-known classics are deliberately excluded.",
+  "models": [
+    { "id": "l323", "name": "TabPFN", "year": 2022, "domain": "tabular" },
+    { "id": "l076", "name": "NGBoost (probabilistic)", "year": 2019, "domain": "tabular" },
+    { "id": "l114", "name": "TimeGPT", "year": 2023, "domain": "time-series" },
+    { "id": "l113", "name": "Chronos (Amazon)", "year": 2024, "domain": "time-series" },
+    { "id": "l217", "name": "PatchTST", "year": 2023, "domain": "time-series" },
+    { "id": "l218", "name": "iTransformer", "year": 2024, "domain": "time-series" },
+    { "id": "l268", "name": "TimesNet", "year": 2022, "domain": "time-series" },
+    { "id": "l110", "name": "N-HiTS", "year": 2022, "domain": "time-series" },
+    { "id": "l109", "name": "N-BEATS", "year": 2020, "domain": "time-series" },
+    { "id": "l267", "name": "Autoformer", "year": 2021, "domain": "time-series" },
+    { "id": "l266", "name": "Informer", "year": 2021, "domain": "time-series" },
+    { "id": "l112", "name": "TFT (Temporal Fusion Transformer)", "year": 2021, "domain": "time-series" },
+    { "id": "l264", "name": "DeepAR (Amazon)", "year": 2019, "domain": "time-series" },
+    { "id": "l265", "name": "TCN (Temporal Convolutional Network)", "year": 2018, "domain": "time-series" },
+    { "id": "l182", "name": "Causal Forest", "year": 2019, "domain": "causal" },
+    { "id": "l183", "name": "Double ML (DML)", "year": 2018, "domain": "causal" },
+    { "id": "l126", "name": "DeepSurv", "year": 2018, "domain": "survival" }
+  ]
+}

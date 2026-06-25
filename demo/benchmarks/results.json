@@ -1,0 +1,408 @@
+{
+  "classification": {
+    "tiers": {
+      "basic": {
+        "gemini": {
+          "model": "gemini-2.5-flash",
+          "text": "I would use **k-Nearest Neighbors (kNN)**.\n\n**Why:** It's a lazy learning algorithm, meaning there is essentially no explicit training phase—it simply stores the training data. This perfectly meets the \"no training time\" requirement. It's a non-parametric method capable of capturing complex decision boundaries and often performs well out-of-the-box with default settings (e.g., `k=5`, Euclidean distance) on clean, balanced datasets, providing strong accuracy without hyperparameter tuning.\n\n**Key Trade-off:** While training is instantaneous, prediction time can be slow for very large datasets or high-dimensional data, as it requires calculating distances to all training samples for each new prediction. Memory usage can also be high as it must store the entire training dataset.",
+          "cost": 0.0038128999999999997
+        },
+        "openai": {
+          "model": "gpt-5-mini",
+          "text": "Model: RandomForestClassifier (scikit-learn's default RandomForest).\n\nWhy: robust out-of-the-box for small tabular data — handles numeric features without scaling, captures nonlinear interactions, rarely needs tuning, and trains essentially instantly on 400 rows.\n\nKey trade-off: less interpretable and sometimes slightly outperformed by a well-tuned gradient-boosted model (e.g., XGBoost/LightGBM) — but those typically require hyperparameter tuning to beat the default RF.",
+          "cost": 0.0011355
+        }
+      },
+      "frontier": {
+        "gemini": {
+          "model": "gemini-2.5-pro",
+          "text": "**Linear Discriminant Analysis (LDA)**\n\n*   **Why:** It has an analytical solution, meaning it trains instantly with no iterative optimization. It has no hyperparameters to tune and is a surprisingly powerful classifier that is robust to overfitting on small datasets.\n\n*   **Key Trade-off:** Its core assumption is a linear decision boundary, so it will not capture complex, non-linear relationships between the features.",
+          "cost": 0.020526249999999996
+        },
+        "openai": {
+          "model": "gpt-5",
+          "text": "Linear Discriminant Analysis (LDA)\n\nWhy: It trains essentially instantly (closed-form), needs no hyperparameter tuning, handles multiclass natively, and is often very accurate on small, clean numeric tabular data by pooling covariance (low variance).\n\nKey trade-off: Assumes roughly Gaussian features with equal class covariances and yields linear decision boundaries; if the true boundary is non-linear, ensembles like Random Forest may do better but at the cost of more training/tuning.",
+          "cost": 0.011417499999999999
+        }
+      }
+    },
+    "tool": {
+      "ranked": [
+        {
+          "name": "TabPFN",
+          "year": 2022,
+          "fitScore": 9.1,
+          "reasons": [
+            "+target multiclass",
+            "+features supported",
+            "+n=400 in model sweet spot",
+            "+supports zero_training"
+          ]
+        },
+        {
+          "name": "Gaussian Naive Bayes",
+          "year": 1950,
+          "fitScore": 7.11,
+          "reasons": [
+            "+target multiclass",
+            "+features supported",
+            "+n=400 in model sweet spot"
+          ]
+        },
+        {
+          "name": "LDA (Linear Discriminant Analysis)",
+          "year": 1936,
+          "fitScore": 7.09,
+          "reasons": [
+            "+target multiclass",
+            "+features supported",
+            "+n=400 in model sweet spot"
+          ]
+        },
+        {
+          "name": "K-Nearest Neighbors (KNN)",
+          "year": 1951,
+          "fitScore": 7.03,
+          "reasons": [
+            "+target multiclass",
+            "+features supported",
+            "+supports zero_training"
+          ]
+        },
+        {
+          "name": "QDA (Quadratic Discriminant Analysis)",
+          "year": 1966,
+          "fitScore": 5.08,
+          "reasons": [
+            "+target multiclass",
+            "+features supported"
+          ]
+        },
+        {
+          "name": "Self-Training",
+          "year": 1975,
+          "fitScore": 5.02,
+          "reasons": [
+            "+target multiclass",
+            "+features supported"
+          ]
+        }
+      ],
+      "dropped": [
+        "1.1.2 Classification",
+        "1.1 Supervised",
+        "Instance-based"
+      ],
+      "n_candidates": 14,
+      "target_in_top3": true
+    }
+  },
+  "counts": {
+    "tiers": {
+      "basic": {
+        "gemini": {
+          "model": "gemini-2.5-flash",
+          "text": "I would use **Zero-Inflated Negative Binomial (ZINB) Regression**.\n\n**Why:** It explicitly models both the excessive zeros (through a binary process determining if the count is zero or not) and the over-dispersion in the non-zero counts (using a Negative Binomial distribution for the positive counts). This directly addresses all the stated characteristics of your count outcome.\n\n**Key Trade-off:** The increased model complexity with more parameters can lead to longer training times and potentially higher variance in parameter estimates on very small datasets compared to simpler count models, making interpretation slightly more involved due to the two distinct generative processes.",
+          "cost": 0.0046083
+        },
+        "openai": {
+          "model": "gpt-5-mini",
+          "text": "Hurdle negative binomial model — a two-part hurdle: (1) logistic model for zero vs positive, (2) truncated negative-binomial for positive counts.\n\nWhy: it explicitly handles excess zeros and overdispersion (NB) while remaining parsimonious and interpretable—good for small tabular datasets with mixed features.\n\nKey trade-off: less flexible than tree/ensemble methods (may miss nonlinear interactions) and requires enough positive observations to fit the count part; model misspecification can bias results.",
+          "cost": 0.00127025
+        }
+      },
+      "frontier": {
+        "gemini": {
+          "model": "gemini-2.5-pro",
+          "text": "I would use a **Zero-Inflated Negative Binomial (ZINB)** model.\n\n**Why:** It is specifically designed for this exact scenario. The Negative Binomial component directly models the overdispersion (variance > mean), while the Zero-Inflated component explicitly handles the excess number of zeros by modeling them as a separate process.\n\n**Key Trade-off:** The key trade-off is **interpretability for complexity**. The model is more complex to fit and explain than simpler count models because it has two parts (a logistic model for the excess zeros and a count model for the positives) that must be interpreted together.",
+          "cost": 0.0169675
+        },
+        "openai": {
+          "model": "gpt-5",
+          "text": "Zero-Inflated Negative Binomial (ZINB) regression with a log link.\n\nWhy: It directly models count data with strong overdispersion and excess zeros, works well on small tabular datasets, and remains interpretable for mixed numeric/categorical features.\n\nKey trade-off: Extra complexity and identifiability risk—more parameters can overfit and sometimes fail to converge on small data; if zero inflation isn’t real, a plain Negative Binomial GLM may generalize better (a hurdle NB is an alternative if zeros stem from a single participation process).",
+          "cost": 0.00965125
+        }
+      }
+    },
+    "tool": {
+      "ranked": [
+        {
+          "name": "Negative Binomial",
+          "year": 1920,
+          "fitScore": 5.07,
+          "reasons": [
+            "+target count",
+            "+features supported"
+          ]
+        },
+        {
+          "name": "Hurdle Model",
+          "year": 1986,
+          "fitScore": 5.04,
+          "reasons": [
+            "+target count",
+            "+features supported"
+          ]
+        },
+        {
+          "name": "GLM Tweedie",
+          "year": 1984,
+          "fitScore": 5.02,
+          "reasons": [
+            "+target count",
+            "+features supported"
+          ]
+        },
+        {
+          "name": "Zero-Inflated Poisson (ZIP)",
+          "year": 1992,
+          "fitScore": 2.06,
+          "reasons": [
+            "+target count",
+            "+features supported",
+            "-contraindicated for overdispersion"
+          ]
+        },
+        {
+          "name": "GLM Quasi-likelihood",
+          "year": 1974,
+          "fitScore": 2.01,
+          "reasons": [
+            "+target count",
+            "+features supported",
+            "-contraindicated for overdispersion"
+          ]
+        },
+        {
+          "name": "Poisson GLM",
+          "year": 1838,
+          "fitScore": -0.95,
+          "reasons": [
+            "+target count",
+            "+features supported",
+            "-contraindicated for overdispersion",
+            "-contraindicated for excess_zeros"
+          ]
+        }
+      ],
+      "dropped": [
+        "3.2 Count and Proportion Models",
+        "1.1.1 Regression",
+        "Decision Tree",
+        "GLM (Generalized Linear Models)"
+      ],
+      "n_candidates": 11,
+      "target_in_top3": true
+    }
+  },
+  "big_data_tabular": {
+    "tiers": {
+      "basic": {
+        "gemini": {
+          "model": "gemini-2.5-flash",
+          "text": "I would use **LightGBM** (specifically, a Gradient Boosting Classifier).\n\n**Why:** LightGBM offers an excellent balance of high predictive accuracy, superior training speed, and scalability for large tabular datasets compared to other tree-based methods. It efficiently handles high-cardinality categorical features directly, reducing the need for extensive preprocessing.\n\n**Key Trade-off:** Its aggressive optimization for speed and memory, particularly its leaf-wise tree growth, can make it more susceptible to overfitting compared to more conservative boosting algorithms if regularization parameters are not carefully tuned.",
+          "cost": 0.0037854
+        },
+        "openai": {
+          "model": "gpt-5-mini",
+          "text": "Model: CatBoost (CatBoostClassifier).\n\nWhy: native handling of high‑cardinality categorical features (ordered target statistics), strong out‑of‑the‑box accuracy on tabular data, and scalable multi‑thread/GPU training so you can run on 5M rows with minimal feature engineering.\n\nKey trade‑off: typically slower and more memory‑hungry to train than LightGBM/XGBoost and tuning can take longer — you trade some training speed/resources for better handling of categorical variables and often higher final accuracy.",
+          "cost": 0.0014075000000000001
+        }
+      },
+      "frontier": {
+        "gemini": {
+          "model": "gemini-2.5-pro",
+          "text": "I would use **LightGBM**.\n\n*   **Why:** It is a gradient boosting framework specifically designed for speed and efficiency on large datasets. Its key advantage is its native, optimized handling of high-cardinality categorical features, which simplifies preprocessing and often improves accuracy.\n\n*   **Key Trade-off:** Its leaf-wise tree growth, which makes it fast, also makes it more prone to overfitting than other boosting models, requiring careful hyperparameter tuning (especially `num_leaves` and `max_depth`).",
+          "cost": 0.01722625
+        },
+        "openai": {
+          "model": "gpt-5",
+          "text": "CatBoostClassifier.\n\nWhy: It natively handles high‑cardinality categorical features with ordered target statistics, delivering top accuracy on tabular data with minimal preprocessing. It scales to millions of rows with efficient CPU multithreading or GPU training.\n\nKey trade-off: Typically slower and more memory‑hungry than LightGBM on very large datasets; you pay higher training cost for better handling of categorical features and usually higher accuracy.",
+          "cost": 0.009377499999999999
+        }
+      }
+    },
+    "tool": {
+      "ranked": [
+        {
+          "name": "XGBoost Classification",
+          "year": 2014,
+          "fitScore": 7.08,
+          "reasons": [
+            "+target binary",
+            "+features supported",
+            "+supports big_data"
+          ]
+        },
+        {
+          "name": "LightGBM Classification",
+          "year": 2017,
+          "fitScore": 7.07,
+          "reasons": [
+            "+target binary",
+            "+features supported",
+            "+supports big_data"
+          ]
+        },
+        {
+          "name": "HistGradientBoosting Classification",
+          "year": 2019,
+          "fitScore": 7.05,
+          "reasons": [
+            "+target binary",
+            "+features supported",
+            "+supports big_data"
+          ]
+        },
+        {
+          "name": "CatBoost Classification",
+          "year": 2017,
+          "fitScore": 5.09,
+          "reasons": [
+            "+target binary",
+            "+features supported"
+          ]
+        },
+        {
+          "name": "TabPFN",
+          "year": 2022,
+          "fitScore": 0.51,
+          "reasons": [
+            "+target binary",
+            "~features partial",
+            "-n=5000000 above ceiling (~10000)"
+          ]
+        },
+        {
+          "name": "CatBoost Regression",
+          "year": 2017,
+          "fitScore": -1.94,
+          "reasons": [
+            "-target mismatch (model: continuous,count,proportion)",
+            "+features supported",
+            "+supports big_data"
+          ]
+        }
+      ],
+      "dropped": [
+        "1.3 Semi-Supervised",
+        "1.1 Supervised",
+        "1.1.2 Classification"
+      ],
+      "n_candidates": 12,
+      "target_in_top3": true
+    }
+  },
+  "forecast_zeroshot": {
+    "tiers": {
+      "basic": {
+        "gemini": {
+          "model": "gemini-2.5-flash",
+          "text": "**Model:** Naive (Last Value) Forecast\n\n**Why:** This approach explicitly satisfies the \"NO training or fitting step at all\" requirement, as it simply projects the last observed demand value into the future. It is computationally trivial, scales instantly to thousands of series, and doesn't require sufficient historical data for parameter estimation or pattern recognition.\n\n**Key Trade-off:** It completely ignores any underlying trends, seasonality, or other historical patterns, making it highly susceptible to noise and sudden shifts in demand. It performs best when demand is stable or slowly changing, but can be inaccurate for volatile series.",
+          "cost": 0.0024773
+        },
+        "openai": {
+          "model": "gpt-5-mini",
+          "text": "Model: Seasonal Naive (sNaive) — forecast each future period by repeating the last observed value from the same seasonal position (fall back to simple Naive = last value if no seasonality).\n\nWhy: zero training/fitting, trivial and instant to apply to thousands of short series, and often a very strong baseline when history is limited.\n\nKey trade-off: cannot capture trends, evolving patterns, or cross‑series information — will underperform any trained model when enough data or transfer learning is possible.",
+          "cost": 0.001781
+        }
+      },
+      "frontier": {
+        "gemini": {
+          "model": "gemini-2.5-pro",
+          "text": "**Model:** Naïve Forecast (also known as a persistence model).\n\n**Why:** It is the only method that perfectly meets the \"no training or fitting\" requirement. It is instantaneous, computationally trivial to scale across thousands of series, and serves as a robust baseline, especially for very short series where complex patterns cannot be reliably estimated.\n\n**Key Trade-off:** You trade any potential accuracy from learning patterns (like trend or seasonality) for maximum speed and simplicity. The model assumes the future will be identical to the most recent past, and it cannot adapt to any changes.",
+          "cost": 0.01676375
+        },
+        "openai": {
+          "model": "gpt-5",
+          "text": "Seasonal Naive (SNAIVE)\n\nWhy: Requires zero training—forecasts each horizon by repeating the last observed value from the same seasonal position (e.g., m=7 for daily with weekly seasonality, m=12 for monthly). It’s fast, robust with only 30–60 points, and scales effortlessly to thousands of series.\n\nKey trade-off: It cannot capture trend or changing seasonality and will underperform on nonseasonal or rapidly shifting series; accuracy hinges on choosing the correct seasonal period m.",
+          "cost": 0.019185
+        }
+      }
+    }
+  },
+  "prob_regression": {
+    "tiers": {
+      "basic": {
+        "gemini": {
+          "model": "gemini-2.5-flash",
+          "text": "The single model I would use is **Bayesian Additive Regression Trees (BART)**.\n\n**Why:** BART inherently provides a full posterior predictive distribution, offering well-calibrated uncertainty estimates crucial for optimizing metrics like CRPS or negative log-likelihood. It excels at capturing complex non-linear relationships in tabular data, is robust to mixed feature types, and provides robust probabilistic forecasts without strong parametric assumptions.\n\n**Key Trade-off:** BART is computationally more intensive than simpler tree-based models, leading to longer training times, especially when sampling the full posterior distribution.",
+          "cost": 0.0039456000000000005
+        },
+        "openai": {
+          "model": "gpt-5-mini",
+          "text": "Model: NGBoost (Natural Gradient Boosting), using a Student‑t predictive distribution.\n\nWhy: NGBoost is a gradient‑boosted tree framework that directly predicts parameters of a parametric predictive distribution (mean, scale, degrees‑of‑freedom), so it gives a full calibrated predictive distribution per row while handling mixed categorical/numeric tabular data and a few‑thousand row sample size efficiently. It trains by natural gradients to optimize likelihood (so you directly optimize NLL; CRPS can be evaluated as your target scoring rule and Student‑t gives robustness to heavy tails and heteroskedasticity).\n\nKey trade‑off: you must pick a parametric family (mis‑specification limits modeling multimodality or very complex residual shapes) and NGBoost captures mainly aleatoric uncertainty—capturing model/epistemic uncertainty requires ensembling or a Bayesian wrapper and extra compute/tuning.",
+          "cost": 0.0016912499999999998
+        }
+      },
+      "frontier": {
+        "gemini": {
+          "model": "gemini-2.5-pro",
+          "text": "I would use **NGBoost** (Natural Gradient Boosting).\n\n**Why:** It is a gradient boosting framework specifically designed for probabilistic prediction. Instead of boosting a point estimate, it boosts the parameters of a full probability distribution (e.g., the mean and standard deviation of a Normal distribution), allowing it to directly optimize the negative log-likelihood or CRPS.\n\n**Key Trade-off:** The primary trade-off is computational speed. NGBoost is generally slower than standard gradient boosting models like LightGBM because it must learn and update multiple output parameters for the distribution at each boosting round.",
+          "cost": 0.020767499999999998
+        },
+        "openai": {
+          "model": "gpt-5",
+          "text": "NGBoost (Natural Gradient Boosting) with decision-tree base learners and a Student-t output distribution.\n\nWhy: Purpose-built for probabilistic prediction on tabular data; it directly optimizes negative log-likelihood and returns a full predictive distribution with generally good calibration on small datasets. Student-t handles heavy tails better than Gaussian and you can still score with CRPS/NLL.\n\nKey trade-off: You must choose a parametric distribution—mis-specification can hurt calibration—and it’s less plug-and-play (and slower) than standard GBMs; also no native categorical handling (you’ll need encoding).",
+          "cost": 0.01613625
+        }
+      }
+    }
+  },
+  "causal": {
+    "tiers": {
+      "basic": {
+        "gemini": {
+          "model": "gemini-2.5-flash",
+          "text": "I would use a **Causal Forest**.\n\n**Why:** It is specifically designed to estimate heterogeneous treatment effects (CATEs) by constructing local treatment effect estimators, effectively handling numerous confounders through its ensemble tree structure, and robustly identifying how treatment effects vary across subgroups.\n\n**Key Trade-off:** It can be computationally intensive and requires careful hyperparameter tuning; the mechanisms driving the identified heterogeneity may be less transparent than with simpler, more interpretable models.",
+          "cost": 0.0027229
+        },
+        "openai": {
+          "model": "gpt-5-mini",
+          "text": "Causal Forest (Generalized Random Forests — Athey & Wager).\n\nWhy: it nonparametrically targets conditional average treatment effects (CATEs), is designed for observational settings using sample‑splitting/honest trees and orthogonalization to reduce bias from high‑dimensional confounders, and returns subgroup treatment effect estimates with asymptotically valid confidence intervals.\n\nKey trade‑off: requires the unconfoundedness (no unobserved confounders) and overlap assumptions and enough sample size for reliable heterogeneity estimates; it’s computationally heavier and less interpretable than simple parametric models and can be suboptimal if a simple parametric model is correct.",
+          "cost": 0.0010885
+        }
+      },
+      "frontier": {
+        "gemini": {
+          "model": "gemini-2.5-pro",
+          "text": "I would use a **Causal Forest**.\n\n**Why:** It is a non-parametric method specifically designed to estimate heterogeneous treatment effects (CATE) from observational data. It excels at handling many confounders by leveraging the ensemble nature of random forests, and its specialized splitting rules focus on maximizing the difference in treatment effects, directly targeting the causal question of interest.\n\n**Key Trade-off:** Flexibility vs. Interpretability. A Causal Forest can capture highly complex and non-linear patterns of treatment effect heterogeneity but operates as a \"black box,\" making it difficult to explain the results with a simple, parametric formula.",
+          "cost": 0.01782625
+        },
+        "openai": {
+          "model": "gpt-5",
+          "text": "Causal Forest (Generalized Random Forest; “honest,” with orthogonalization)\n\nWhy: Nonparametric estimation of heterogeneous treatment effects while flexibly adjusting for many confounders via nuisance outcome/propensity models (orthogonal/doubly-robust), with valid inference for CATEs and subgroup effects.\n\nKey trade-off: Data-hungry and reliant on overlap/ignorability; performance degrades with extreme propensities and it’s less interpretable/slower than simple parametric models.",
+          "cost": 0.0114825
+        }
+      }
+    }
+  },
+  "survival": {
+    "tiers": {
+      "basic": {
+        "gemini": {
+          "model": "gemini-2.5-flash",
+          "text": "I would use a **Random Survival Forest**.\n\n**Why:** It inherently captures complex nonlinearities and interactions among covariates without explicit specification, and directly produces individualized survival probabilities (risk predictions) while accounting for right-censoring.\n\n**Key Trade-off:** Reduced interpretability compared to parametric models, making it harder to discern specific directional effects or magnitudes of individual features.",
+          "cost": 0.0023924000000000003
+        },
+        "openai": {
+          "model": "gpt-5-mini",
+          "text": "Model: XGBoost (gradient-boosted trees) with the AFT survival objective (XGBoost AFT).\n\nWhy: tree ensembles natively capture nonlinearities and high-order interactions and XGBoost AFT directly models censored times to produce individualized survival distributions/quantiles and absolute risk predictions with strong predictive performance and scalability.\n\nKey trade-off: XGBoost AFT assumes a parametric log‑time distribution (AFT family) and needs careful hyperparameter tuning — if the AFT family is misspecified or events are sparse/highly censored, absolute-risk calibration can be biased.",
+          "cost": 0.0022015
+        }
+      },
+      "frontier": {
+        "gemini": {
+          "model": "gemini-2.5-pro",
+          "text": "I would use a **Random Survival Forest (RSF)**.\n\n**Why:** It is a non-parametric ensemble method designed for censored data that automatically captures complex nonlinear and interaction effects without you needing to specify them in advance.\n\n**Key Trade-off:** You sacrifice the simple, interpretable hazard ratios of a Cox model for higher predictive accuracy and flexibility.",
+          "cost": 0.01734375
+        },
+        "openai": {
+          "model": "gpt-5",
+          "text": "XGBoost Cox (gradient-boosted survival trees with a Cox partial-likelihood objective).\n\nWhy: It natively handles right-censoring, automatically captures nonlinearities and high-order interactions, and yields individualized risk scores and survival curves (via an estimated baseline hazard), with strong performance on tabular data.\n\nKey trade-off: Assumes proportional hazards and is less interpretable/tuning-heavy; if PH is badly violated, calibration can suffer compared to AFT or discrete-time alternatives.",
+          "cost": 0.0165275
+        }
+      }
+    }
+  }
+}

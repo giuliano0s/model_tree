@@ -1,10 +1,12 @@
 # model-tree-mcp
 
-Servidor MCP que recomenda modelos preditivos (ML, Deep Learning, Estatística
-Clássica) a partir da descrição de uma situação em linguagem natural.
+Servidor MCP que surfaca os modelos preditivos **recentes/nicho que o seu LLM
+esqueceria** (TabPFN, TimeGPT, NGBoost, Causal Forest, DeepSurv, ...) para o seu
+dataset. Para os modelos conhecidos (regressão, random forest, XGBoost, ARIMA) o
+próprio LLM já acerta; este servidor existe para o que ele subrepresenta.
 
-A tool consulta um endpoint hospedado que faz a busca vetorial na árvore de
-400+ modelos curados.
+A tool consulta um endpoint hospedado que filtra a árvore de 400+ modelos a um
+conjunto curado de ocultos e reordena por encaixe estatístico.
 
 ## Uso (Claude Code / Claude Desktop)
 
@@ -34,15 +36,15 @@ deploy próprio), defina a env var `MODEL_TREE_API`:
 
 ## Tool e prompt
 
-- **Tool `search_models(situation: str, top_k: int = 8)`** — devolve os modelos mais
-  próximos da situação descrita, cada um com seus campos (diff_siblings, strengths,
-  weaknesses, recommended_for, not_recommended_for, keywords) e o `stat_fit` (perfil de
-  encaixe estatístico: tipo/distribuição do target, regime n/p, tipos de feature,
-  suposições, loss suportada, contraindicações).
-- **Prompt `analyze_dataset(data_path)`** — orquestra a recomendação a partir de um
-  dataset local: o agente investiga (target, loss), faz a EDA (profunda no dado cru ou
-  rasa numa EDA prévia, com os tokens do usuário) e recomenda 3-4 modelos com tradeoffs.
-  Os dados crus nunca saem da máquina.
+- **Tool `find_overlooked_models(situation, profile, top_k=6)`** — dado o perfil do
+  dataset, devolve os modelos **recentes/nicho** (do conjunto curado de ocultos) que cabem
+  e que o LLM tende a esquecer, cada um com seus campos, o `stat_fit`, um `fitScore` e
+  `reasons` auditáveis. Use depois de já ter o seu pick padrão; respeite as caveats de cada
+  candidato. Lista vazia é resposta válida ("seu pick clássico é o certo").
+- **Prompt `analyze_dataset(data_path)`** — o agente investiga, faz a EDA local (profunda
+  no dado cru ou rasa numa EDA prévia, com os tokens do usuário; agrega para big data), dá
+  a recomendação padrão da própria memória e então checa `find_overlooked_models` para o
+  que ele perdeu. Os dados crus nunca saem da máquina.
 
 ## Desenvolvimento
 

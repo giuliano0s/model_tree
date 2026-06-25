@@ -1,6 +1,8 @@
 // Busca vetorial compartilhada pelos endpoints. Cliente read-only.
 
 import { Index } from "@upstash/vector";
+import { rerank, type Profile, type Ranked } from "./rerank.js";
+import { HIDDEN_IDS } from "./hidden.js";
 
 const index = new Index({
   url: process.env.UPSTASH_VECTOR_REST_URL!,
@@ -49,4 +51,19 @@ export async function searchModels(situacao: string, topK = 5): Promise<Modelo[]
       statFit: m.stat_fit as Record<string, unknown> | undefined,
     };
   });
+}
+
+// CORE da ferramenta: dado o perfil, surfaca os modelos OCULTOS (recentes/nicho que o LLM
+// subrepresenta) que cabem no dataset. Recupera um pool amplo da base (só leitura), filtra para
+// o conjunto curado de ocultos, e reordena por encaixe estatístico. Devolve poucos, com razões.
+export async function searchOverlookedModels(
+  situacao: string,
+  profile: Profile,
+  topK = 6,
+  pool = 40,
+): Promise<Ranked[]> {
+  const candidatos = (await searchModels(situacao, Math.min(pool, 50))).filter((m) =>
+    HIDDEN_IDS.has(m.id),
+  );
+  return rerank(profile, candidatos, topK);
 }

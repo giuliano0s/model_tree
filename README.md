@@ -1,6 +1,6 @@
 # 🌳 Model Tree
 
-> A navigable taxonomy of **predictive models** across Machine Learning, Deep Learning / AI and Classical Statistics, delivered two ways: a **visual web app with an AI tutor**, and a **distributable MCP server** that recommends models for your actual dataset from inside Claude Code and other agents.
+> A navigable taxonomy of **predictive models** across Machine Learning, Deep Learning / AI and Classical Statistics, delivered two ways: a **visual web app with an AI tutor**, and a **distributable MCP server** that surfaces the recent/niche models you would overlook for your dataset, from inside Claude Code and other agents.
 
 🔗 **Live app:** [model-tree.vercel.app](https://model-tree.vercel.app) · 📦 **MCP:** [`model-tree-mcp` on PyPI](https://pypi.org/project/model-tree-mcp/)
 
@@ -24,7 +24,7 @@ Model Tree turns a sprawling map of predictive modeling — from Linear Regressi
 That curated knowledge powers **two products from one source**:
 
 1. **The web app** — explore the tree visually and ask an **AI tutor** *"which model should I use for X?"* conversationally, grounded only in the taxonomy and honest about limitations.
-2. **The MCP server** — a distributable package (`model-tree-mcp`) that brings the same taxonomy into Claude Code and other agents: point it at a dataset and it recommends models grounded in the data's statistics, not the LLM's fuzzy memory.
+2. **The MCP server** — a distributable package (`model-tree-mcp`) that brings the same taxonomy into Claude Code and other agents: point it at a dataset and it surfaces the recent/niche models that fit and that the LLM would forget (it already gives you the well-known answer on its own).
 
 - **402 nodes** · 325 leaf models · 77 categories
 - **3 main branches:** `1. Machine Learning` · `2. AI / Deep Learning` · `3. Classical Statistics`
@@ -44,21 +44,21 @@ A conversational tutor, not a search box. Describe your problem in plain languag
 - The answer **streams** in, and every **model name is a clickable link** that flies to that node in the tree.
 
 ### 🔌 MCP server
-The same taxonomy, usable from Claude Code and other agents through a distributable package (`model-tree-mcp`, on PyPI), in two ways:
-- **`search_models` tool** — query the taxonomy for the closest models to a described situation; each result carries its full metadata, including a **statistical-fit profile** (target type and distribution, n/p regime, feature types, assumptions, supported loss, contraindications).
-- **`analyze_dataset` prompt** — point it at a dataset in your project and the agent investigates the problem (target, the loss/metric you optimize), runs a quick EDA (deep on the raw data, or shallow from your prior EDA), then recommends **3-4 models with trade-offs**, grounded in the dataset's statistics and your chosen loss. Raw data never leaves your machine; the package ships zero secrets.
+The same taxonomy, usable from Claude Code and other agents through `model-tree-mcp` (on PyPI). It does **one focused thing**: surface the model your own LLM would overlook.
+- **`find_overlooked_models` tool** — given your dataset profile, returns the **recent or niche** models that fit and that an LLM tends to forget (TabPFN, TimeGPT, Chronos, NGBoost, Causal Forest, DeepSurv, ...), filtered to a curated "overlooked" set and ranked by a **deterministic statistical-fit score** with auditable reasons.
+- **`analyze_dataset` prompt** — profiles the dataset locally (deep on raw data, or shallow from a prior EDA; aggregates for big data), gives the **standard recommendation from the agent's own knowledge**, then checks `find_overlooked_models` for anything it missed. Raw data never leaves your machine; the package ships zero secrets.
 
 #### "Can't I just ask an LLM to do this?"
 
-You can prompt an agent to run an EDA and suggest models, and it will. But a free-form LLM recommends from **fuzzy parametric memory**, with failure modes this tool removes:
+Mostly, yes, and the benchmark in [demo/benchmarks/](demo/benchmarks/) says so honestly: for well-known models (linear/logistic regression, random forest, XGBoost, ARIMA, the count GLMs) any competent LLM already gives the right answer, so the tool **ties** and is not worth its tokens. The value is narrow and specific:
 
-- **Grounded, not guessed.** Recommendations come *only* from a curated taxonomy of 400+ models with hand-verified metadata, not from whatever the model half-remembers. Each candidate carries a structured **statistical-fit profile** (target distribution, n/p regime, assumptions, supported loss, contraindications) written specifically for model selection.
-- **Covers the decision space, not the famous names.** Free-form LLMs gravitate to XGBoost and BERT and quietly skip the right classical or niche tool. The hybrid search surfaces the statistically-appropriate options (e.g. Hurdle vs Zero-Inflated vs Negative Binomial for count data with excess zeros), and the prompt forces *distinct* alternatives instead of variants of one idea.
-- **Tells you when a model is wrong.** The taxonomy carries explicit **contraindications** (Poisson under overdispersion, gradient boosting under n < 1k), so you get the caveat, not just a confident suggestion.
-- **Consistent and inspectable.** The same query returns the same retrieved candidates, and each links back to a node you can open in the visual tree. Free-form answers drift with phrasing and can't be audited.
-- **Improves over time.** Corrections and new models added to the taxonomy reach everyone immediately; you can't patch an LLM's frozen internal knowledge.
+- **It surfaces the model the LLM forgets.** When the best fit is a genuinely obscure recent model (e.g. TabPFN for small tabular classification with no tuning), frontier and mid-tier LLMs alike skip it; the tool brings it up. For moderately-niche models the LLM already knows (NGBoost, Causal Forest), it adds nothing.
+- **It stays current.** New models added to the curated set reach everyone immediately; an LLM's knowledge is frozen at its training cutoff. This is the durable reason the tool exists.
+- **It is honest.** Each candidate carries explicit contraindications, and when no overlooked model fits, the tool says so rather than inventing one.
 
-The agent still does the EDA locally, with your tokens. The MCP just swaps the model's hazy recall for a vetted, maintained, inspectable source of model knowledge.
+The agent still does the EDA and the standard recommendation itself, with your tokens. The MCP is a focused check for the recent/niche model you would otherwise miss, not a replacement for the LLM's judgment.
+
+**Honest benchmark result** (7 cases, 6 raw LLMs across two tiers vs the tool, in [demo/benchmarks/](demo/benchmarks/README.md)): the tool surfaced an overlooked model **decisively only when it was genuinely obscure** (TabPFN for small tabular classification: 0/6 LLMs named it; the tool did). For moderately-niche models the LLM already knows (NGBoost, Causal Forest, ML survival) it **tied**; for classical problems (count GLMs, big-data boosters) no overlooked model fit and the tool said so. The lesson is a RAG lesson: a curated base over public knowledge only adds value on what the model never saw, so the durable edge here is **currency** (models newer than the training cutoff), not out-recommending the LLM.
 
 ### 🗺️ Interactive tree
 - A radial, "tree-from-above" layout rendered in SVG (D3 computes positions, React renders).
@@ -83,7 +83,7 @@ Everything runs **serverless on free tiers**, with no server to manage:
 ```
 you → /api/chat  → rate-limit (Upstash Redis)
                   → Gemini Flash (tool calling, streaming)
-                       └─ search_models → Upstash Vector (hybrid: dense + BM25)
+                       └─ find_overlooked_models → Upstash Vector (hybrid: dense + BM25)
                   → grounded answer
 ```
 
@@ -170,8 +170,8 @@ Add the server to your MCP client (e.g. Claude Code / Claude Desktop):
 ```
 
 Then either:
-- call the **`search_models(situation, top_k)`** tool directly for a quick taxonomy lookup, or
-- run the **`analyze_dataset`** prompt pointing at a dataset to get a model recommendation grounded in its statistics (the agent does the EDA locally; raw data stays on your machine).
+- run the **`analyze_dataset`** prompt pointing at a dataset (the agent profiles it locally, recommends from its own knowledge, then checks for overlooked recent/niche models), or
+- call the **`find_overlooked_models(situation, profile, top_k)`** tool directly to surface the recent/niche models that fit a given profile.
 
 Point it at a different deployment with the `MODEL_TREE_API` env var. Source in [`model-tree-mcp/`](model-tree-mcp/).
 

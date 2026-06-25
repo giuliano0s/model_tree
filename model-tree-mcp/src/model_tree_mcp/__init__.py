@@ -1,14 +1,16 @@
 """
 model-tree MCP server.
 
-Exposes two things to the client (Claude Code, etc.):
+Purpose: surface the OVERLOOKED model. Any capable LLM already knows the standard, well-known
+answer for a dataset (linear/logistic regression, random forest, XGBoost, ARIMA, the count GLMs).
+What it reliably FORGETS are recent or niche purpose-built models (TabPFN, TimeGPT, Chronos,
+PatchTST, NGBoost, Causal Forest, DeepSurv, ...). This tool exists to catch exactly those: given a
+dataset profile, it returns the recent/niche models that FIT and that the caller's own reasoning
+would likely miss, ranked by statistical fit, with auditable reasons.
 
-- tool `search_models`: queries the public /api/search endpoint and returns the closest
-  models to a described situation, each with its metadata (including `stat_fit`, the
-  statistical-fit profile used to match a model to a dataset).
-- prompt `analyze_dataset`: orchestrates a dataset-grounded recommendation. The reasoning
-  (investigation + EDA) runs in the AGENT, on the user's tokens; the raw data never leaves
-  the machine. The package itself reads no data and holds no secrets.
+It is a thin HTTP client of the public /api/search endpoint. It reads no data and holds no secrets;
+the raw dataset never leaves the machine (the AGENT profiles it locally; only the aggregate profile
+is sent).
 
 Client config:
     "model-tree": { "command": "uvx", "args": ["model-tree-mcp"] }
@@ -29,67 +31,88 @@ mcp = FastMCP("model-tree")
 
 
 @mcp.tool()
-def search_models(situation: str, top_k: int = 8) -> list[dict]:
-    """Search the taxonomy for the predictive models closest to a situation.
+def find_overlooked_models(situation: str, profile: dict | None = None, top_k: int = 6) -> list[dict]:
+    """Surface RECENT / NICHE models that fit the dataset and that you would likely overlook.
 
-    Pass an ENGLISH description enriched with technical vocabulary (task, target
-    distribution, n/p regime, feature types, desired loss/metric), not the user's
-    raw words: this widens recall.
+    Use this AFTER you already have your own standard recommendation. It does NOT return the
+    well-known classics (you know those) — it returns the overlooked, purpose-built models from a
+    curated set (e.g. TabPFN for small tabular, TimeGPT/Chronos for forecasting, NGBoost for
+    probabilistic regression, Causal Forest / Double ML for causal effects, DeepSurv for survival),
+    filtered to the ones that actually fit the profile and ranked by statistical fit.
 
-    Each returned model carries its fields (diff_siblings, strengths, weaknesses,
-    recommended_for, not_recommended_for, keywords) and `stat_fit` (statistical-fit
-    profile: target type/distribution, data regime, feature types, assumptions,
-    supported loss, contraindications). Use `stat_fit` and the desired loss to judge
-    how well each candidate fits the dataset.
+    Pass an ENGLISH `situation` enriched with technical vocabulary (task, target distribution, n/p
+    regime, feature types, desired loss) AND a structured `profile` so the server can rank by fit.
+
+    profile schema (fill what the EDA determined; flags must be OBJECTIVE properties of the problem,
+    not loose interpretations):
+        {
+          "task": "classification" | "regression" | "forecasting" | "survival" | "causal" | ...,
+          "target_type": "binary" | "multiclass" | "continuous" | "count" | "ordinal" |
+                         "proportion" | "time-to-event" | "time-series" | "none",
+          "n_rows": int,
+          "n_features": int,
+          "feature_types": ["numeric","categorical","high-cardinality categorical",
+                            "text","image","graph","temporal"],
+          "flags": ["overdispersion","excess_zeros","p>n","imbalanced",
+                    "cold_start","zero_training","needs_interpretability","big_data"]
+        }
+
+    Each returned model carries its fields (diff_siblings, strengths, weaknesses, recommended_for,
+    not_recommended_for, keywords), its `stat_fit`, and a `fitScore` + `reasons` (the auditable
+    + / - signals). RESPECT each candidate's caveats: a high fitScore still loses if its
+    `not_recommended_for` / `contraindicated_when` rules out your dataset.
+
+    Returns an empty-ish list when no overlooked model fits — that is a valid, honest answer
+    meaning "your standard pick is the right call here".
 
     Args:
         situation: technical English description of the problem/data/constraints.
-        top_k: how many candidates to return (default 8; pick 3-4 final ones).
+        profile: structured profile of the dataset (strongly recommended; enables ranking).
+        top_k: how many overlooked candidates to return (default 6).
     """
-    resp = httpx.post(
-        ENDPOINT,
-        json={"situacao": situation, "topK": top_k},
-        timeout=30,
-    )
+    body: dict = {"situacao": situation, "topK": top_k, "hidden": True}
+    if profile:
+        body["profile"] = profile
+    resp = httpx.post(ENDPOINT, json=body, timeout=30)
     resp.raise_for_status()
     return resp.json().get("modelos", [])
 
 
 @mcp.prompt()
 def analyze_dataset(data_path: str = "") -> str:
-    """Recommend predictive models by analyzing a local dataset.
+    """Recommend predictive models for a local dataset, catching the overlooked ones.
 
-    Investigates the problem, runs an EDA (deep or shallow), searches the taxonomy,
-    and recommends 3-4 models with trade-offs, grounded in the dataset's statistics.
+    Profiles the dataset (deterministically where possible), gives the standard recommendation from
+    your own knowledge, then checks for recent/niche models you may have missed via
+    find_overlooked_models, and decides honestly whether any of them fits better.
     """
     target = data_path or "the data file/directory indicated by the user"
-    return f"""You are a senior data-science tutor helping choose predictive models for a real dataset. The data is at: {target}.
+    return f"""You are a senior data-science tutor choosing predictive models for a real dataset. The data is at: {target}.
 
-Work conversationally, like a tutor — never dump everything at once. Follow these phases:
+The premise: you already know the standard, well-documented models. The one thing you (like any LLM) reliably FORGET are recent or niche purpose-built models. The `find_overlooked_models` tool exists to catch those. Work conversationally; never dump everything at once.
 
 PHASE 1 — INVESTIGATE (one decisive question at a time, wait for the answer):
-- Which column is the TARGET (or is this unsupervised)?
-- What LOSS / METRIC matters to the user (e.g. RMSE, MAE, quantile/pinball, log-loss, AUC, CRPS, business cost)? This is a tie-breaker later.
-- DEEP or SHALLOW analysis? Deep = I read the raw data and profile it now. Shallow = I read the user's prior EDA artifacts (notebooks, profiling reports) and infer from them.
-Do not ask all three as a list; ask the most decisive one first and adapt.
+- Which column is the TARGET (or is this unsupervised / causal / survival)?
+- What LOSS / METRIC matters (RMSE, MAE, quantile, log-loss, AUC, CRPS, business cost)? Tie-breaker later.
+- DEEP or SHALLOW analysis? Deep = I profile the raw data now. Shallow = I read the user's prior EDA artifacts.
 
-PHASE 2 — EDA (you do this with your own tools; the raw data NEVER leaves the machine):
-- DEEP: read the data at the path, then profile: target type (continuous / count / binary / multiclass / ordinal / proportion / time-to-event / time-series) and its empirical distribution (e.g. looks Poisson, heavy-tailed, bimodal); n rows and n features; feature types (numeric / categorical incl. high-cardinality / text / image / temporal); missingness; class balance; relevant moments (mean/median/variance) only where they inform the choice; and which features could be DERIVED (dates → seasonality/lags, text → embeddings).
-- SHALLOW: locate and read the user's existing EDA outputs and extract the same profile from them; state what you could not determine.
-- Summarize the profile back to the user briefly before recommending.
+PHASE 2 — EDA (your own tools; the raw data NEVER leaves the machine):
+- Profile: target type and empirical distribution; n rows and n features; feature types; missingness; class balance; relevant moments only where they inform the choice; derivable features (dates -> lags, text -> embeddings).
+- For BIG DATA that does not fit in memory, the rule is: NEVER load all rows — compute the profile from AGGREGATES or a representative sample. Use whatever is available: a lazy/columnar engine (DuckDB or Polars) for a one-pass scan if present, otherwise pandas in chunks or a random sample. Install a fast engine only if the environment allows; do not depend on it.
+- Summarize the profile briefly before recommending.
 
-PHASE 3 — SEARCH:
-- Call the tool `search_models` ONCE with a concise ENGLISH query enriched from the profile (task + target distribution + n/p regime + feature types + desired loss), not the user's raw words.
+PHASE 3 — STANDARD PICK (from your own knowledge):
+- State the standard, well-known recommendation(s) for this profile, with trade-offs. You do not need the tool for these; you already know them (linear/logistic regression, random forest, XGBoost/LightGBM, ARIMA, the count GLMs, etc.).
 
-PHASE 4 — RECOMMEND 3-4 models with trade-offs:
-- Ground every recommendation ONLY in the returned candidates and their fields, especially each candidate's `stat_fit` (target/distribution, data regime, feature types, assumptions, supported `loss`, contraindications). Do not invent models.
-- Match against the profile AND the user's loss: a candidate that does not support the desired loss is a weaker fit even if otherwise suitable (e.g. quantile loss → quantile regression or gradient boosting with a quantile objective; calibrated uncertainty / CRPS → probabilistic models like NGBoost).
-- The 3-4 models MUST be meaningfully DISTINCT options that span the decision space, not variants of the same approach (e.g. for count data with excess zeros: a Negative Binomial baseline, a Zero-Inflated model, and a Hurdle model — NOT ZIP and ZINB, which are the same family).
-- Lead with the best fit for the task at the current state of the art; keep valid classics (linear/logistic regression, random forest, ARIMA) as first-class when they fit; flag when a candidate is contraindicated for this dataset (e.g. overdispersed counts → negative binomial over Poisson; tiny n → avoid heavy deep models).
-- For each: one line on WHY it fits this profile + its key trade-off. End by offering to go deeper on any of them.
-- Be honest: if the dataset is ill-posed or no candidate truly fits, say so and explain what would be needed.
+PHASE 4 — CHECK FOR OVERLOOKED MODELS (the tool):
+- Build a STRUCTURED `profile` (task, target_type, n_rows, n_features, feature_types, flags). Set a flag ONLY if it is an OBJECTIVE property of the problem (e.g. overdispersion because variance >> mean; big_data because n is in the millions; zero_training ONLY if the user literally needs no training at all — "no per-series training" is NOT zero_training). Loose flags produce wrong rankings.
+- Call `find_overlooked_models(situation=..., profile=...)` ONCE. It returns recent/niche models that fit, with `fitScore` + `reasons`.
+- For each returned candidate, judge it on the MERITS against your standard pick, RESPECTING its caveats (`not_recommended_for` / `contraindicated_when`): a recent model is not automatically better. Often nothing overlooked beats the standard answer — say so plainly. Sometimes one genuinely fits better (e.g. TabPFN on small tabular with no tuning) — then surface it.
 
-LANGUAGE: reply in the language the user writes in; default to English. Keep proper names of models, libraries and metrics in their conventional (English) form."""
+PHASE 5 — RECOMMEND 2-4 distinct models with trade-offs:
+- Ground ONLY in your standard knowledge + the returned candidates and their fields. Lead with the best fit; include a recent/niche option only when it genuinely fits; flag contraindications. Be honest: if the standard answer is the right call and nothing overlooked improves it, say exactly that. End by offering to go deeper.
+
+LANGUAGE: reply in the language the user writes in; default to English. Keep model/library/metric names in their conventional (English) form."""
 
 
 def main():
