@@ -8,6 +8,9 @@ próprio LLM já acerta; este servidor existe para o que ele subrepresenta.
 A tool consulta um endpoint hospedado que filtra a árvore de 400+ modelos a um
 conjunto curado de ocultos e reordena por encaixe estatístico.
 
+> **Status:** este pacote está **yanked** no PyPI (`uvx model-tree-mcp` não resolve).
+> Rode a partir do código deste repositório para testar. Ver `demo/benchmarks/` para o porquê.
+
 ## Uso (Claude Code / Claude Desktop)
 
 Adicione ao seu config de MCP:

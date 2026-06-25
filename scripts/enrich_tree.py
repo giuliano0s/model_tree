@@ -11,14 +11,20 @@ A base vetorial só é reindexada se houver o token de ESCRITA do Upstash no amb
 (mantenedor). Quem contribui sem esse token gera os dados localmente e abre um Pull
 Request; o mantenedor reindexa ao aceitar.
 
-Geração: Gemini 2.5 Pro + Google Search (precisa de billing; Flash via GEMINI_ENRICH_MODEL).
+Geração: Gemini 2.5 Pro + Google Search (default; Flash via GEMINI_ENRICH_MODEL), OU o modelo
+do próprio ambiente via --provider=agent (o agente do Claude Code gera, custo zero de API).
 Tradução: translate_tree.py (en -> idioma, com cache; só traduz o que mudou).
 
 Uso:
-    python scripts/enrich_tree.py "N-HiTS" "ControlNet"
-    python scripts/enrich_tree.py --no-reindex "Mamba"   # gera e traduz, não toca na base
+    python scripts/enrich_tree.py "N-HiTS" "ControlNet"           # geração via Gemini (default)
+    python scripts/enrich_tree.py --no-reindex "Mamba"           # gera e traduz, não toca na base
+    # provider 'agent': usa o modelo do ambiente (o agente), custo zero de API. Duas fases
+    # (emite o prompt -> o agente preenche o .response.json -> --ingest insere):
+    python scripts/enrich_tree.py --provider=agent "TiDE"            # emite scripts/enrich_prompts/tide.md
+    python scripts/enrich_tree.py --provider=agent --ingest "TiDE"   # insere a resposta, traduz, (reindexa)
     # sem args: lê nomes de scripts/new_models.txt (um por linha)
 
+Provider: ENRICH_PROVIDER=gemini|agent (default gemini) ou a flag --provider=agent.
 Config via env: GEMINI_ENRICH_MODEL, REQUEST_INTERVAL.
 """
 
@@ -45,11 +51,18 @@ DATA = ROOT / "data"
 SOURCE_LANG = "en"
 SRC = DATA / f"models_tree.{SOURCE_LANG}.json"
 NAMES_FILE = ROOT / "scripts" / "new_models.txt"
+PROMPTS = ROOT / "scripts" / "enrich_prompts"  # provider 'agent': prompts e respostas do agente
 
 GEN_MODEL = os.getenv("GEMINI_ENRICH_MODEL", "gemini-2.5-pro")
 REQUEST_INTERVAL = float(os.getenv("REQUEST_INTERVAL", "12.5"))
 
-gemini = genai.Client(api_key=os.getenv("GEMINI_ENRICH_API_KEY") or os.getenv("GEMINI_API_KEY"))
+# o cliente Gemini só é criado quando o provider é 'gemini' (o modo 'agent' não usa chave)
+_gemini = None
+def get_gemini():
+    global _gemini
+    if _gemini is None:
+        _gemini = genai.Client(api_key=os.getenv("GEMINI_ENRICH_API_KEY") or os.getenv("GEMINI_API_KEY"))
+    return _gemini
 
 # ---------------------------------------------------------------- helpers de árvore
 # percorre a árvore em profundidade
@@ -159,7 +172,7 @@ def generate_node(name, parents):
     prompt = f"{GEN_SYSTEM}\n\nMODEL NAME: {name}\n\nCATEGORIES:\n{block}"
     for attempt in range(3):
         try:
-            resp = gemini.models.generate_content(
+            resp = get_gemini().models.generate_content(
                 model=GEN_MODEL,
                 contents=prompt,
                 config=types.GenerateContentConfig(
@@ -209,10 +222,82 @@ def discover_languages():
             langs.append(code)
     return langs
 
+# ---------------------------------------------------------------- provider 'agent' (modelo do ambiente)
+# Em vez de chamar uma API, emite o prompt de geração para o agente do Claude Code preencher.
+# Custo zero de API; o agente usa o próprio modelo (e pode pesquisar na web com suas ferramentas).
+def emit_agent_prompts(names, parents, existing):
+    PROMPTS.mkdir(parents=True, exist_ok=True)
+    block = "\n".join(f"{pid} :: {path}" for pid, path in parents)
+    pending = []
+    for name in names:
+        if norm(name) in existing:
+            print(f"[skip] '{name}' já existe")
+            continue
+        safe = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+        (PROMPTS / f"{safe}.md").write_text(
+            f"{GEN_SYSTEM}\n\nMODEL NAME: {name}\n\nCATEGORIES:\n{block}", encoding="utf-8")
+        pending.append((name, safe))
+        print(f"[prompt] {name} -> scripts/enrich_prompts/{safe}.md")
+    if pending:
+        joined = " ".join(f'"{n}"' for n, _ in pending)
+        print("\nAgente: para cada .md acima, gere o objeto JSON pedido (pesquise na web se útil) e")
+        print("salve em scripts/enrich_prompts/<mesmo-nome>.response.json. Depois rode o ingest:")
+        print(f"  python scripts/enrich_tree.py --provider=agent --ingest {joined}")
+
+# lê as respostas que o agente escreveu e monta os nós (mesma validação do caminho Gemini)
+def ingest_agent_responses(names, en_tree, parents, existing):
+    novos = []
+    for name in names:
+        if norm(name) in existing:
+            print(f"[skip] '{name}' já existe")
+            continue
+        safe = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+        resp = PROMPTS / f"{safe}.response.json"
+        if not resp.exists():
+            print(f"[falta] resposta do agente ausente: scripts/enrich_prompts/{safe}.response.json")
+            continue
+        gen = parse_json_loose(resp.read_text(encoding="utf-8"))
+        if not find_node_id_in(parents, gen.get("parent_id")):
+            print(f"[erro] parent_id inválido para '{name}': {gen.get('parent_id')}")
+            continue
+        gen_keys = {norm(gen["name"]), norm(gen["name"].split("(")[0])}
+        if gen_keys & existing:
+            print(f"[skip] '{name}' -> '{gen['name']}' já existe")
+            continue
+        node_id = next_leaf_id(flatten(en_tree, []))
+        en_node = build_node(node_id, gen)
+        find_node(en_tree, gen["parent_id"])["children"].append(en_node)
+        novos.append((gen["parent_id"], en_node))
+        existing |= gen_keys
+        print(f"[en] {name} -> {node_id} sob {gen['parent_id']}")
+    return novos
+
+# salva o EN, traduz cada idioma e reindexa (só no modo mantenedor)
+def finalize(novos, en_tree, no_reindex):
+    if not novos:
+        print("nada novo a adicionar")
+        return
+    save(SRC, en_tree)
+    for lang in discover_languages():
+        print(f"traduzindo en -> {lang}...")
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "translate_tree.py"), lang], check=True)
+    write_token = (os.getenv("UPSTASH_VECTOR_REST_TOKEN") or "").strip()
+    has_write_token = bool(write_token) and "..." not in write_token and not no_reindex
+    if has_write_token:
+        print("reindexando...")
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "index_tree.py")], check=True)
+        print(f"OK: {len(novos)} modelo(s) adicionado(s), traduzido(s) e indexado(s)")
+    else:
+        print(f"\nOK: {len(novos)} modelo(s) adicionado(s) e traduzido(s) localmente.")
+        print("A base vetorial NÃO foi reindexada (sem token de escrita ou --no-reindex).")
+        print("Faça commit das mudanças em data/ e abra um Pull Request; o mantenedor reindexa.")
+
 # ---------------------------------------------------------------- main
 def main():
     args = sys.argv[1:]
-    # --no-reindex força o fluxo do contribuidor: gera e traduz, mas não toca na base
+    provider = next((a.split("=", 1)[1] for a in args if a.startswith("--provider=")),
+                    os.getenv("ENRICH_PROVIDER", "gemini"))
+    ingest = "--ingest" in args
     no_reindex = "--no-reindex" in args
     names = [a for a in args if not a.startswith("--")]
     if not names and NAMES_FILE.exists():
@@ -221,73 +306,42 @@ def main():
         print("nenhum nome informado (args ou scripts/new_models.txt)")
         return
 
-    # chave de geração é obrigatória (Gemini, ou Cerebras se for o provedor da tradução)
-    if not (os.getenv("GEMINI_ENRICH_API_KEY") or os.getenv("GEMINI_API_KEY")):
-        print("ERRO: defina GEMINI_ENRICH_API_KEY (ou GEMINI_API_KEY) no .env para gerar os nós.")
-        print("Veja .env.example. É a única chave necessária para contribuir.")
-        return
-
-    # token de escrita do Upstash é opcional: sem ele, roda em modo contribuidor
-    write_token = (os.getenv("UPSTASH_VECTOR_REST_TOKEN") or "").strip()
-    has_write_token = bool(write_token) and "..." not in write_token and not no_reindex
-    if not has_write_token:
-        print("Modo contribuidor: vou gerar e traduzir localmente, mas NÃO reindexar a base")
-        print("(sem token de escrita do Upstash). Ao terminar, faça commit em data/ e abra um PR.\n")
-
     en_tree = load(SRC)
     parents = collect_parents(en_tree, [], [])
     existing = existing_names(en_tree)
 
-    # cada nome de entrada vira exatamente um nó. Variantes de tarefa de um mesmo
-    # modelo (ex.: classificação + regressão) são decididas manualmente, passando
-    # os nomes já separados.
-    targets = names
+    # provider 'agent': o modelo do próprio ambiente (agente do Claude Code) gera, custo zero de API.
+    # Fase 1 (sem --ingest): emite os prompts. Fase 2 (--ingest): insere as respostas do agente.
+    if provider == "agent":
+        if not ingest:
+            emit_agent_prompts(names, parents, existing)
+            return
+        finalize(ingest_agent_responses(names, en_tree, parents, existing), en_tree, no_reindex)
+        return
 
-    # gera cada modelo em inglês e insere sob uma categoria existente
-    novos = []  # (parent_id, en_node)
-    for name in targets:
+    # provider 'gemini' (default): geração via API, exige chave
+    if not (os.getenv("GEMINI_ENRICH_API_KEY") or os.getenv("GEMINI_API_KEY")):
+        print("ERRO: defina GEMINI_ENRICH_API_KEY (ou GEMINI_API_KEY) para gerar com Gemini,")
+        print("ou use --provider=agent para gerar com o modelo do ambiente (sem chave). Veja .env.example.")
+        return
+    novos = []
+    for name in names:
         if norm(name) in existing:
             print(f"[skip] '{name}' já existe")
             continue
         gen = generate_node(name, parents)
-        # o nome oficial gerado pode diferir do que o usuário digitou
         gen_keys = {norm(gen["name"]), norm(gen["name"].split("(")[0])}
         if gen_keys & existing:
             print(f"[skip] '{name}' -> '{gen['name']}' já existe")
             continue
-
-        # encaixa sob uma categoria existente (categorias novas são criadas manualmente)
-        parent_id = gen["parent_id"]
         node_id = next_leaf_id(flatten(en_tree, []))
         en_node = build_node(node_id, gen)
-        find_node(en_tree, parent_id)["children"].append(en_node)
-        novos.append((parent_id, en_node))
-        existing |= gen_keys  # evita duplicar nomes na mesma execução
-        print(f"[en] {name} -> {node_id} sob {parent_id}")
+        find_node(en_tree, gen["parent_id"])["children"].append(en_node)
+        novos.append((gen["parent_id"], en_node))
+        existing |= gen_keys
+        print(f"[en] {name} -> {node_id} sob {gen['parent_id']}")
         time.sleep(REQUEST_INTERVAL)
-
-    if not novos:
-        print("nada novo a adicionar")
-        return
-
-    save(SRC, en_tree)
-
-    # traduz cada idioma a partir do EN (translate_tree reconstrói o arquivo; o cache só
-    # traduz o que mudou). Processo isolado para não herdar sys.argv.
-    for lang in discover_languages():
-        print(f"traduzindo en -> {lang}...")
-        subprocess.run([sys.executable, str(ROOT / "scripts" / "translate_tree.py"), lang], check=True)
-
-    # reindexa só no modo mantenedor (token de escrita presente e sem --no-reindex);
-    # has_write_token foi decidido no início. Contribuidor abre PR; mantenedor reindexa.
-    if has_write_token:
-        print("reindexando...")
-        subprocess.run([sys.executable, str(ROOT / "scripts" / "index_tree.py")], check=True)
-        print(f"OK: {len(novos)} modelos adicionados, traduzidos e indexados")
-    else:
-        print(f"\nOK: {len(novos)} modelo(s) adicionado(s) e traduzido(s) localmente.")
-        print("A base vetorial NÃO foi reindexada. Faça commit das mudanças em data/ e abra")
-        print("um Pull Request; o mantenedor reindexa a base ao aceitar.")
+    finalize(novos, en_tree, no_reindex)
 
 if __name__ == "__main__":
     main()

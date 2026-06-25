@@ -2,7 +2,7 @@
 
 > A navigable taxonomy of **predictive models** across Machine Learning, Deep Learning / AI and Classical Statistics, delivered two ways: a **visual web app with an AI tutor**, and a **distributable MCP server** that surfaces the recent/niche models you would overlook for your dataset, from inside Claude Code and other agents.
 
-🔗 **Live app:** [model-tree.vercel.app](https://model-tree.vercel.app) · 📦 **MCP:** [`model-tree-mcp` on PyPI](https://pypi.org/project/model-tree-mcp/)
+🔗 **Live app:** [model-tree.vercel.app](https://model-tree.vercel.app) · 📦 **MCP:** [`model-tree-mcp`](https://pypi.org/project/model-tree-mcp/) (currently yanked on PyPI — see the benchmark verdict below)
 
 <p>
   <img alt="MCP" src="https://img.shields.io/badge/MCP-model--tree--mcp-7c3aed">
@@ -158,6 +158,8 @@ vercel dev       # serves the frontend + /api together
 ---
 
 ## Use the MCP
+
+> **Status:** `model-tree-mcp` is currently **yanked** on PyPI, so `uvx model-tree-mcp` will not resolve to an installable version (the benchmark verdict above explains why). To try it anyway, run it from source in this repo (`model-tree-mcp/`).
 
 Add the server to your MCP client (e.g. Claude Code / Claude Desktop):
 

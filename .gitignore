@@ -25,6 +25,9 @@ data/models_tree.backup.json
 # cache intermediário da tradução (por idioma)
 scripts/translations.*.json
 
+# prompts/respostas transitórios do provider 'agent' do enrich
+scripts/enrich_prompts/
+
 # logs
 *.log
 npm-debug.log*
