@@ -74,7 +74,7 @@ MANIFEST = ROOT / "data" / "languages.json"
 # provider da tradução: "gemini" (default, usa a chave do enrich) ou "cerebras"
 # (switch com a env var TRANSLATE_PROVIDER)
 PROVIDER = os.getenv("TRANSLATE_PROVIDER", "gemini").lower()
-GEMINI_MODEL = os.getenv("GEMINI_TRANSLATE_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_TRANSLATE_MODEL", "gemini-3.1-flash-lite")
 # Cerebras: gpt-oss-120b (não-reasoning) é mais consistente que o zai-glm-4.7
 CEREBRAS_MODEL = os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
 ACTIVE_MODEL = CEREBRAS_MODEL if PROVIDER == "cerebras" else GEMINI_MODEL

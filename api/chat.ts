@@ -98,7 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const systemInstruction = SYSTEM + (LEVELS[body.level ?? ""] ?? "");
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-  const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+  const model = process.env.GEMINI_MODEL ?? "gemini-3.1-flash-lite";
   const contents = messages.map((m) => ({ role: m.role, parts: [{ text: m.text }] }));
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
