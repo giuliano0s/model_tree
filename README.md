@@ -238,7 +238,7 @@ Commit the new `data/models_tree.<lang>.json`, the updated `data/languages.json`
 ## Project structure
 
 ```
-api/                      # Vercel serverless functions: chat.ts, search.ts
+api/                      # Vercel serverless functions: chat.ts, search.ts, keepalive.ts (daily cron)
 lib/                      # vectorSearch.ts (shared), ratelimit.ts
 data/                     # one JSON per language + languages.json + layout.json
 src/
